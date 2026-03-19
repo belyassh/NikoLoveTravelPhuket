@@ -256,7 +256,7 @@ async function onFormSubmit(event) {
   const totalPrice = excursion.price * peopleCount;
 
   const message = [
-    "Новая заявка на экскурсию",
+    "Привет! Я хочу заказать экскурсию, вот детали моей заявки:",
     `Имя и фамилия: ${formData.get("firstName")} ${formData.get("lastName")}`,
     `Экскурсия: ${excursion.title}`,
     `Количество человек: ${peopleCount}`,
