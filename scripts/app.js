@@ -266,17 +266,22 @@ function onFormSubmit(event) {
     `Контакт: ${formData.get("contact")}`
   ].join("\n");
 
-  const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(message)}`;
+  const telegramUrl = buildTelegramRequestUrl(message);
+  refs.formNote.textContent = state.telegramUsername
+    ? `Открываем чат менеджера @${state.telegramUsername} с готовой заявкой...`
+    : "Открываем Telegram с готовым текстом заявки...";
 
-  refs.formNote.textContent = "Открываем Telegram с готовым текстом заявки...";
-  window.open(shareUrl, "_blank", "noopener,noreferrer");
+  window.open(telegramUrl, "_blank", "noopener,noreferrer");
+}
+
+function buildTelegramRequestUrl(message) {
+  const encodedText = encodeURIComponent(message);
 
   if (state.telegramUsername) {
-    const managerUrl = `https://t.me/${state.telegramUsername}`;
-    setTimeout(() => {
-      window.open(managerUrl, "_blank", "noopener,noreferrer");
-    }, 350);
+    return `https://t.me/${state.telegramUsername}?text=${encodedText}`;
   }
+
+  return `https://t.me/share/url?url=${encodeURIComponent(window.location.href)}&text=${encodedText}`;
 }
 
 function getExcursionById(excursionId) {
