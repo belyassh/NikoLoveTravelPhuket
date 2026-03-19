@@ -38,7 +38,7 @@ async function initialize() {
   state.excursions = data.excursions ?? [];
   state.filtered = [...state.excursions];
   state.currency = data.agency?.currency ?? "USD";
-  state.telegramUsername = data.telegram?.managerUsername ?? "";
+  state.telegramUsername = normalizeTelegramUsername(data.telegram?.managerUsername);
 
   setupManagerLink();
   populateTagFilter();
@@ -236,7 +236,7 @@ function updateTotalPrice() {
   refs.totalPrice.value = `${formatPrice(total)} (${count} чел.)`;
 }
 
-function onFormSubmit(event) {
+async function onFormSubmit(event) {
   event.preventDefault();
 
   if (!refs.form.checkValidity()) {
@@ -266,22 +266,53 @@ function onFormSubmit(event) {
     `Контакт: ${formData.get("contact")}`
   ].join("\n");
 
-  const telegramUrl = buildTelegramRequestUrl(message);
-  refs.formNote.textContent = state.telegramUsername
-    ? `Открываем чат менеджера @${state.telegramUsername} с готовой заявкой...`
-    : "Открываем Telegram с готовым текстом заявки...";
-
+  const telegramUrl = buildTelegramRequestUrl();
   window.open(telegramUrl, "_blank", "noopener,noreferrer");
-}
-
-function buildTelegramRequestUrl(message) {
-  const encodedText = encodeURIComponent(message);
 
   if (state.telegramUsername) {
-    return `https://t.me/${state.telegramUsername}?text=${encodedText}`;
+    const copied = await copyToClipboard(message);
+    refs.formNote.textContent = copied
+      ? `Открыт чат @${state.telegramUsername}. Текст заявки скопирован, вставьте его в диалог.`
+      : `Открыт чат @${state.telegramUsername}. Скопируйте текст заявки вручную и отправьте менеджеру.`;
+    return;
   }
 
-  return `https://t.me/share/url?url=${encodeURIComponent(window.location.href)}&text=${encodedText}`;
+  refs.formNote.textContent = "Открываем Telegram с готовым текстом заявки...";
+}
+
+function buildTelegramRequestUrl() {
+  if (state.telegramUsername) {
+    return `https://t.me/${state.telegramUsername}`;
+  }
+
+  return "https://t.me/share/url";
+}
+
+function normalizeTelegramUsername(value) {
+  if (!value) {
+    return "";
+  }
+
+  let normalized = String(value).trim();
+  normalized = normalized.replace(/^https?:\/\//i, "");
+  normalized = normalized.replace(/^t\.me\//i, "");
+  normalized = normalized.replace(/^@+/, "");
+  normalized = normalized.split(/[/?#]/)[0];
+
+  return normalized;
+}
+
+async function copyToClipboard(text) {
+  if (!navigator.clipboard || !window.isSecureContext) {
+    return false;
+  }
+
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 function getExcursionById(excursionId) {
