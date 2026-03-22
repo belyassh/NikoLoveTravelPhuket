@@ -264,7 +264,8 @@ async function onFormSubmit(event) {
     totalPrice: formatPrice(totalPrice),
     pickupPoint: formData.get("pickupPoint"),
     desiredDate: formData.get("desiredDate"),
-    contact: formData.get("contact")
+    contact: formData.get("contact"),
+    email: formData.get("email")
   };
 
   const message = [
@@ -275,7 +276,8 @@ async function onFormSubmit(event) {
     `Итоговая стоимость: ${requestDetails.totalPrice}`,
     `Отель/точка Google Maps: ${requestDetails.pickupPoint}`,
     `Желаемая дата: ${requestDetails.desiredDate}`,
-    `Контакт: ${requestDetails.contact}`
+    `Контакт: ${requestDetails.contact}`,
+    `Email: ${requestDetails.email}`
   ].join("\n");
 
   if (state.emailService?.endpoint) {
@@ -315,6 +317,8 @@ async function sendRequestViaEmailService(requestDetails, message) {
     payload.append("pickupPoint", requestDetails.pickupPoint);
     payload.append("desiredDate", requestDetails.desiredDate);
     payload.append("contact", requestDetails.contact);
+    payload.append("email", requestDetails.email);
+    payload.append("_replyto", requestDetails.email);
     payload.append("source", "Vibe Trip website form");
     payload.append("submittedAt", new Date().toISOString());
     payload.append("message", message);
