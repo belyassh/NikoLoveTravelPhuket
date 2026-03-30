@@ -7,6 +7,9 @@ const state = {
   emailService: null
 };
 
+const FALLBACK_IMAGE =
+  "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80";
+
 const refs = {
   cardsGrid: document.querySelector("#cardsGrid"),
   cardTemplate: document.querySelector("#cardTemplate"),
@@ -128,8 +131,9 @@ function renderCards(items) {
     const node = refs.cardTemplate.content.cloneNode(true);
     const card = node.querySelector(".tour-card");
     const image = node.querySelector(".tour-card-image");
+    const images = getExcursionImages(item);
 
-    image.src = item.images?.[0] || "";
+    image.src = images[0];
     image.alt = item.title;
 
     node.querySelector(".tour-card-title").textContent = item.title;
@@ -155,12 +159,13 @@ function openDetails(excursionId) {
     return;
   }
 
+  const images = getExcursionImages(excursion);
   let slideIndex = 0;
 
   refs.detailsContent.innerHTML = `
     <div class="details-layout">
       <div class="slider">
-        <img src="${excursion.images[0]}" alt="${excursion.title}" data-slider-image />
+        <img src="${images[0]}" alt="${excursion.title}" data-slider-image />
         <button class="slider-control slider-prev" type="button" aria-label="Предыдущее фото">‹</button>
         <button class="slider-control slider-next" type="button" aria-label="Следующее фото">›</button>
       </div>
@@ -191,10 +196,15 @@ function openDetails(excursionId) {
   const chooseButton = refs.detailsContent.querySelector('[data-action="choose-from-dialog"]');
 
   const updateSlide = (step) => {
-    const length = excursion.images.length;
+    const length = images.length;
     slideIndex = (slideIndex + step + length) % length;
-    sliderImage.src = excursion.images[slideIndex];
+    sliderImage.src = images[slideIndex];
   };
+
+  if (images.length <= 1) {
+    prevButton.hidden = true;
+    nextButton.hidden = true;
+  }
 
   prevButton.addEventListener("click", () => updateSlide(-1));
   nextButton.addEventListener("click", () => updateSlide(1));
@@ -408,6 +418,14 @@ async function copyToClipboard(text) {
 
 function getExcursionById(excursionId) {
   return state.excursions.find((item) => item.id === excursionId);
+}
+
+function getExcursionImages(excursion) {
+  const images = Array.isArray(excursion?.images)
+    ? excursion.images.filter((url) => typeof url === "string" && url.trim())
+    : [];
+
+  return images.length ? images : [FALLBACK_IMAGE];
 }
 
 function formatPrice(value) {
