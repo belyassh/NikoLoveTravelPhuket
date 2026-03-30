@@ -32,6 +32,7 @@
       <nav class="main-nav" aria-label="Главная навигация">
         <a href="#catalog">Витрина</a>
         <a href="#request">Заявка</a>
+        <a href="#faq">FAQ</a>
         <a href="#contacts">Контакты</a>
       </nav>
 
@@ -160,6 +161,35 @@
           </div>
         </form>
       </section>
+
+      <section class="faq" id="faq">
+        <div class="section-head">
+          <h2>FAQ</h2>
+          <p>Ответы на частые вопросы перед бронированием.</p>
+        </div>
+
+        <div class="faq-list">
+          <details class="faq-item" open>
+            <summary>Как быстро вы подтверждаете заявку?</summary>
+            <p>Обычно в течение 5-15 минут в рабочее время. В высокий сезон ответ может занять до 30 минут.</p>
+          </details>
+
+          <details class="faq-item">
+            <summary>Можно ли изменить дату после оформления?</summary>
+            <p>Да, в большинстве случаев можно перенести экскурсию. Напишите менеджеру как можно раньше, чтобы мы закрепили новый слот.</p>
+          </details>
+
+          <details class="faq-item">
+            <summary>Как понять, что заявка принята?</summary>
+            <p>После успешной отправки вы увидите подтверждение на сайте. Затем менеджер свяжется с вами по указанному контакту.</p>
+          </details>
+
+          <details class="faq-item">
+            <summary>Что делать, если форма не отправилась?</summary>
+            <p>Сайт автоматически предложит резервный канал через Telegram, чтобы вы не потеряли заявку.</p>
+          </details>
+        </div>
+      </section>
     </main>
 
     <footer class="site-footer" id="contacts">
@@ -170,6 +200,27 @@
     <dialog id="detailsDialog" class="details-dialog">
       <article id="detailsContent" class="details-content"></article>
       <button class="dialog-close" id="dialogClose" aria-label="Закрыть">×</button>
+    </dialog>
+
+    <dialog id="statusDialog" class="status-dialog" aria-labelledby="statusTitle" aria-describedby="statusText">
+      <article class="status-card">
+        <div id="statusLoader" class="status-loader" aria-hidden="true">
+          <span></span>
+          <span></span>
+          <span></span>
+          <span></span>
+          <span></span>
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+        <h3 id="statusTitle">Отправляем запрос...</h3>
+        <p id="statusText">Пожалуйста, подождите.</p>
+        <div id="statusActions" class="status-actions" hidden>
+          <button id="continueShoppingBtn" class="btn btn-primary" type="button">Продолжить покупки</button>
+          <button id="gotoFaqBtn" class="btn btn-ghost" type="button">Перейти в FAQ</button>
+        </div>
+      </article>
     </dialog>
 
     <template id="cardTemplate">

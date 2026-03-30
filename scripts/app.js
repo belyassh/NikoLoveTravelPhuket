@@ -4,7 +4,8 @@ const state = {
   selectedId: "",
   telegramUsername: "",
   currency: "USD",
-  emailService: null
+  emailService: null,
+  isSubmitting: false
 };
 
 const FALLBACK_IMAGE =
@@ -16,6 +17,7 @@ const refs = {
   searchInput: document.querySelector("#searchInput"),
   tagFilter: document.querySelector("#tagFilter"),
   form: document.querySelector("#requestForm"),
+  submitButton: document.querySelector('#requestForm button[type="submit"]'),
   excursionSelect: document.querySelector("#excursionSelect"),
   peopleInput: document.querySelector("#peopleInput"),
   totalPrice: document.querySelector("#totalPrice"),
@@ -23,7 +25,14 @@ const refs = {
   managerLink: document.querySelector("#managerLink"),
   detailsDialog: document.querySelector("#detailsDialog"),
   detailsContent: document.querySelector("#detailsContent"),
-  dialogClose: document.querySelector("#dialogClose")
+  dialogClose: document.querySelector("#dialogClose"),
+  statusDialog: document.querySelector("#statusDialog"),
+  statusLoader: document.querySelector("#statusLoader"),
+  statusTitle: document.querySelector("#statusTitle"),
+  statusText: document.querySelector("#statusText"),
+  statusActions: document.querySelector("#statusActions"),
+  continueShoppingBtn: document.querySelector("#continueShoppingBtn"),
+  gotoFaqBtn: document.querySelector("#gotoFaqBtn")
 };
 
 initialize().catch((error) => {
@@ -65,6 +74,28 @@ function bindEvents() {
     if (target === refs.detailsDialog) {
       closeDialog();
     }
+  });
+
+  refs.statusDialog.addEventListener("cancel", (event) => {
+    if (state.isSubmitting) {
+      event.preventDefault();
+    }
+  });
+
+  refs.statusDialog.addEventListener("click", (event) => {
+    if (event.target === refs.statusDialog && !state.isSubmitting) {
+      closeStatusDialog();
+    }
+  });
+
+  refs.continueShoppingBtn.addEventListener("click", () => {
+    closeStatusDialog();
+    document.querySelector("#catalog").scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+
+  refs.gotoFaqBtn.addEventListener("click", () => {
+    closeStatusDialog();
+    document.querySelector("#faq").scrollIntoView({ behavior: "smooth", block: "start" });
   });
 }
 
@@ -290,30 +321,79 @@ async function onFormSubmit(event) {
     `Email: ${requestDetails.email}`
   ].join("\n");
 
-  if (state.emailService?.endpoint) {
-    refs.formNote.textContent = "Отправляем заявку...";
-    const result = await sendRequestViaEmailService(requestDetails, message);
+  setSubmittingState(true);
+  showStatusDialog({
+    title: "Отправляем запрос...",
+    text: "Пожалуйста, подождите.",
+    mode: "loading"
+  });
 
-    if (result.ok) {
-      refs.formNote.textContent = "Заявка отправлена. Мы свяжемся с вами в ближайшее время.";
-      return;
+  try {
+    if (state.emailService?.endpoint) {
+      const result = await sendRequestViaEmailService(requestDetails, message);
+
+      if (result.ok) {
+        refs.formNote.textContent = "Заявка отправлена. Мы свяжемся с вами в ближайшее время.";
+        refs.form.reset();
+        refs.peopleInput.value = "1";
+        state.selectedId = "";
+        updateTotalPrice();
+        showStatusDialog({
+          title: "Мы приняли вашу заявку",
+          text: "Менеджер свяжется с вами в ближайшее время.",
+          mode: "success"
+        });
+        return;
+      }
+
+      refs.formNote.textContent = result.error || "Не удалось отправить заявку на email. Открываем Telegram как резервный канал.";
     }
 
-    refs.formNote.textContent = result.error || "Не удалось отправить заявку на email. Открываем Telegram как резервный канал.";
+    const telegramUrl = buildTelegramRequestUrl();
+    window.open(telegramUrl, "_blank", "noopener,noreferrer");
+
+    if (state.telegramUsername) {
+      const copied = await copyToClipboard(message);
+      refs.formNote.textContent = copied
+        ? `Открыт чат @${state.telegramUsername}. Текст заявки скопирован, вставьте его в диалог.`
+        : `Открыт чат @${state.telegramUsername}. Скопируйте текст заявки вручную и отправьте менеджеру.`;
+    } else {
+      refs.formNote.textContent = "Открываем Telegram с готовым текстом заявки...";
+    }
+
+    showStatusDialog({
+      title: "Нужна отправка через Telegram",
+      text: "Мы открыли резервный канал. Завершите отправку заявки в Telegram.",
+      mode: "fallback"
+    });
+  } finally {
+    setSubmittingState(false);
   }
+}
 
-  const telegramUrl = buildTelegramRequestUrl();
-  window.open(telegramUrl, "_blank", "noopener,noreferrer");
+function setSubmittingState(isSubmitting) {
+  state.isSubmitting = isSubmitting;
+  refs.submitButton.disabled = isSubmitting;
+  refs.submitButton.textContent = isSubmitting ? "Отправляем..." : "Отправить заявку";
+}
 
-  if (state.telegramUsername) {
-    const copied = await copyToClipboard(message);
-    refs.formNote.textContent = copied
-      ? `Открыт чат @${state.telegramUsername}. Текст заявки скопирован, вставьте его в диалог.`
-      : `Открыт чат @${state.telegramUsername}. Скопируйте текст заявки вручную и отправьте менеджеру.`;
-    return;
+function showStatusDialog({ title, text, mode }) {
+  refs.statusTitle.textContent = title;
+  refs.statusText.textContent = text;
+
+  const isLoading = mode === "loading";
+  refs.statusLoader.hidden = !isLoading;
+  refs.statusActions.hidden = mode !== "success";
+
+  if (!refs.statusDialog.open) {
+    refs.statusDialog.showModal();
   }
+}
 
-  refs.formNote.textContent = "Открываем Telegram с готовым текстом заявки...";
+function closeStatusDialog() {
+  if (refs.statusDialog.open) {
+    refs.statusDialog.close();
+  }
 }
 
 async function sendRequestViaEmailService(requestDetails, message) {
