@@ -1145,6 +1145,7 @@ function debounce(fn, wait) {
 }
 
 function setupDeferredRentalState() {
+  refs.rentalCardsGrid.classList.add("is-pending");
   refs.rentalCardsGrid.replaceChildren(createEmptyState("Загружаем варианты аренды..."));
   setRentalControlsEnabled(false);
 }
@@ -1189,6 +1190,7 @@ function applyRentalsData(rentalsData) {
   state.filteredRentals = [...state.rentals];
   populateRentalTagFilter();
   populateRentalSelect();
+  refs.rentalCardsGrid.classList.remove("is-pending");
   renderRentalCards(state.filteredRentals);
   setRentalControlsEnabled(true);
   updateRentalTotalPrice();
@@ -1210,6 +1212,7 @@ async function ensureRentalsLoaded() {
       state.rentalsLoaded = true;
       return true;
     } catch (error) {
+      refs.rentalCardsGrid.classList.remove("is-pending");
       refs.rentalCardsGrid.replaceChildren(createEmptyState("Не удалось загрузить данные аренды."));
       refs.rentalFormNote.textContent = "Ошибка загрузки данных аренды.";
       console.error(error);

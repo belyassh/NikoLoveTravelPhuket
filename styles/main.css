@@ -404,6 +404,10 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 0.9rem;
   min-width: 0;
+  align-content: start;
+}
+
+.cards-grid.is-pending {
   min-height: clamp(320px, 48vw, 620px);
 }
 
