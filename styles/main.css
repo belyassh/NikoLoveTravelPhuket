@@ -351,6 +351,7 @@ textarea:focus {
 /* iOS Safari can render date controls wider than container without explicit inline-size rules */
 input[type="date"] {
   display: block;
+  position: relative;
   width: 100%;
   inline-size: 100%;
   max-width: 100%;
@@ -358,6 +359,9 @@ input[type="date"] {
   min-width: 0;
   min-inline-size: 0;
   overflow: hidden;
+  -webkit-appearance: none;
+  appearance: none;
+  padding-right: 2.2rem;
 }
 
 input[type="date"]::-webkit-date-and-time-value {
@@ -371,6 +375,16 @@ input[type="date"]::-webkit-date-and-time-value {
 
 input[type="date"]::-webkit-datetime-edit {
   overflow: hidden;
+  padding: 0;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  position: absolute;
+  right: 0.6rem;
+  width: 1.1rem;
+  height: 1.1rem;
+  margin: 0;
+  opacity: 0.9;
 }
 
 .input-muted {
