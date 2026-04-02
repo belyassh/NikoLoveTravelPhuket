@@ -165,12 +165,16 @@ main,
   background: var(--surface);
   padding: 0.55rem;
   cursor: pointer;
-  grid-template-rows: repeat(3, 1fr);
-  gap: 0.22rem;
+  align-content: center;
+  justify-items: center;
+  gap: 0.26rem;
+  appearance: none;
+  -webkit-appearance: none;
 }
 
 .mobile-menu-toggle span {
   display: block;
+  width: 1rem;
   height: 2px;
   background: var(--text);
   border-radius: 999px;
@@ -192,11 +196,7 @@ main,
 .mobile-menu-backdrop {
   position: fixed;
   inset: 0;
-  border: 0;
-  margin: 0;
-  padding: 0;
   background: rgba(20, 32, 39, 0.38);
-  backdrop-filter: blur(2px);
   opacity: 0;
   pointer-events: none;
   transition: opacity 180ms ease;
@@ -730,6 +730,11 @@ textarea:focus {
   .mobile-menu-toggle,
   .mobile-menu-close,
   .mobile-menu-backdrop {
+    display: block;
+  }
+
+  .mobile-menu-toggle,
+  .mobile-menu-close {
     display: grid;
   }
 
