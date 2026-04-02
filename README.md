@@ -143,6 +143,29 @@ http://localhost:8080
 - Для загрузки JSON нужен запуск через локальный сервер, а не прямое открытие файла.
 - В логике предусмотрен fallback для отсутствующих изображений в карточках и модалке.
 
+## SEO перед запуском
+
+Реализованный техминимум:
+
+- robots: robots.txt
+- sitemap: sitemap.xml
+- favicon: image.png подключен в head
+- 404-страница: 404.html
+- Open Graph / Twitter метатеги и canonical в index.html
+- JSON-LD (TravelAgency) в index.html
+
+Перед подключением собственного домена обновите:
+
+1. URL в canonical, og:url и og:image в index.html.
+2. URL в robots.txt (строка Sitemap).
+3. URL в sitemap.xml (поле loc).
+
+После привязки домена в GitHub Pages:
+
+1. Включите Enforce HTTPS.
+2. Добавьте сайт в Google Search Console.
+3. Отправьте sitemap.xml в Search Console.
+
 ## Идеи для развития
 
 1. Добавить сортировку по цене и популярности.
