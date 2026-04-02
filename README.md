@@ -59,6 +59,24 @@ npm run preview
 
 Готовые статические файлы будут в папке dist.
 
+## Деплой на GitHub Pages
+
+Проект настроен на автоматический деплой production-сборки через GitHub Actions.
+
+Workflow:
+
+- [ .github/workflows/deploy-pages.yml ](.github/workflows/deploy-pages.yml)
+
+Как работает:
+
+1. При каждом push в ветку main запускается npm ci и npm run build.
+2. Папка dist публикуется в GitHub Pages.
+
+Требуется один раз включить в настройках репозитория:
+
+1. Settings → Pages.
+2. В Source выбрать GitHub Actions.
+
 ## Альтернатива без сборки
 
 Если нужен только простой статический запуск в текущем виде, можно использовать любой локальный сервер.
