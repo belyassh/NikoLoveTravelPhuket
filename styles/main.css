@@ -312,6 +312,13 @@ main {
 .field {
   display: grid;
   gap: 0.35rem;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.field > * {
+  min-width: 0;
+  max-width: 100%;
 }
 
 .field span {
@@ -323,6 +330,9 @@ input,
 select,
 textarea {
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  -webkit-min-logical-width: 0;
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
   padding: 0.7rem 0.85rem;
@@ -347,10 +357,20 @@ input[type="date"] {
   max-inline-size: 100%;
   min-width: 0;
   min-inline-size: 0;
+  overflow: hidden;
 }
 
 input[type="date"]::-webkit-date-and-time-value {
   text-align: left;
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+input[type="date"]::-webkit-datetime-edit {
+  overflow: hidden;
 }
 
 .input-muted {
