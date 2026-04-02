@@ -8,6 +8,7 @@
       "category": "moto",
       "prices": {
         "day": 32,
+        "week": 180,
         "month": 540,
         "year": 5200
       },
@@ -31,6 +32,7 @@
       "category": "auto",
       "prices": {
         "day": 68,
+        "week": 390,
         "month": 1320,
         "year": 14800
       },
@@ -54,6 +56,7 @@
       "category": "yachts-catamarans",
       "prices": {
         "day": 420,
+        "week": 2450,
         "month": 8900,
         "year": 97000
       },

@@ -150,51 +150,6 @@ main,
   color: var(--text);
 }
 
-.nav-dropdown {
-  position: relative;
-}
-
-.nav-dropdown > a::after {
-  content: "▾";
-  margin-left: 0.35rem;
-  font-size: 0.72rem;
-  opacity: 0.8;
-}
-
-.nav-dropdown-menu {
-  position: absolute;
-  top: calc(100% + 0.55rem);
-  left: 50%;
-  transform: translateX(-50%) translateY(6px);
-  min-width: 220px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-md);
-  background: rgba(255, 254, 248, 0.98);
-  box-shadow: var(--shadow);
-  padding: 0.45rem;
-  display: grid;
-  gap: 0.2rem;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 180ms ease, transform 180ms ease;
-}
-
-.nav-dropdown-menu a {
-  border-radius: 10px;
-  padding: 0.5rem 0.6rem;
-}
-
-.nav-dropdown-menu a:hover {
-  background: rgba(12, 122, 109, 0.08);
-}
-
-.nav-dropdown:hover .nav-dropdown-menu,
-.nav-dropdown:focus-within .nav-dropdown-menu {
-  opacity: 1;
-  pointer-events: auto;
-  transform: translateX(-50%) translateY(0);
-}
-
 main {
   display: grid;
   gap: 2.4rem;
@@ -372,6 +327,7 @@ textarea:focus {
 
 .tour-card-price {
   font-weight: 700;
+  line-height: 1.35;
 }
 
 .tour-card-actions {

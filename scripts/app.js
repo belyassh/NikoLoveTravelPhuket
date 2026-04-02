@@ -31,7 +31,6 @@ const refs = {
   excursionSelect: document.querySelector("#excursionSelect"),
   rentalSelect: document.querySelector("#rentalSelect"),
   peopleInput: document.querySelector("#peopleInput"),
-  rentalDurationUnit: document.querySelector("#rentalDurationUnit"),
   rentalDurationCount: document.querySelector("#rentalDurationCount"),
   rentalStartDate: document.querySelector("#rentalStartDate"),
   rentalEndDate: document.querySelector("#rentalEndDate"),
@@ -106,7 +105,6 @@ function bindEvents() {
   refs.excursionSelect.addEventListener("change", onSelectFromForm);
   refs.rentalSelect.addEventListener("change", onRentalSelectFromForm);
   refs.peopleInput.addEventListener("input", updateTotalPrice);
-  refs.rentalDurationUnit.addEventListener("change", updateRentalTotalPrice);
   refs.rentalStartDate.addEventListener("change", onRentalDateRangeChange);
   refs.rentalEndDate.addEventListener("change", onRentalDateRangeChange);
   refs.form.addEventListener("submit", onFormSubmit);
@@ -139,16 +137,6 @@ function bindEvents() {
   refs.gotoFaqBtn.addEventListener("click", () => {
     closeStatusDialog();
     document.querySelector("#faq").scrollIntoView({ behavior: "smooth", block: "start" });
-  });
-
-  document.querySelectorAll("[data-rental-category]").forEach((link) => {
-    link.addEventListener("click", (event) => {
-      event.preventDefault();
-      const category = link.dataset.rentalCategory;
-      refs.rentalTagFilter.value = category || "all";
-      applyRentalFilters();
-      document.querySelector("#rental").scrollIntoView({ behavior: "smooth", block: "start" });
-    });
   });
 }
 
@@ -204,7 +192,7 @@ function populateRentalSelect() {
   for (const rental of state.rentals) {
     const option = document.createElement("option");
     option.value = rental.id;
-    option.textContent = `${rental.title} (${formatRentalPriceSummary(rental)})`;
+    option.textContent = `${rental.title} (от ${formatPrice(getRentalPrice(rental, "month"))} / месяц • ${formatPrice(getRentalPrice(rental, "week"))} / неделя)`;
     fragment.append(option);
   }
 
@@ -273,6 +261,7 @@ function applyRentalFilters() {
       item.description,
       item.category,
       String(getRentalPrice(item, "day")),
+      String(getRentalPrice(item, "week")),
       String(getRentalPrice(item, "month")),
       String(getRentalPrice(item, "year"))
     ].join(" ").toLowerCase();
@@ -305,7 +294,7 @@ function renderRentalCards(items) {
     node.querySelector(".tour-card-title").textContent = item.title;
     node.querySelector(".tour-card-overview").textContent = item.overview;
     node.querySelector(".rental-card-meta").textContent = `${formatRentalCategory(item.category)} • ${item.transmission}`;
-    node.querySelector(".tour-card-price").textContent = formatRentalPriceSummary(item);
+    node.querySelector(".tour-card-price").textContent = `От ${formatPrice(getRentalPrice(item, "month"))} / месяц • ${formatPrice(getRentalPrice(item, "week"))} / неделя`;
 
     const detailsBtn = node.querySelector('[data-action="details"]');
     const requestBtn = node.querySelector('[data-action="request"]');
@@ -498,8 +487,7 @@ function updateTotalPrice() {
 
 function updateRentalTotalPrice() {
   const selected = getRentalById(state.selectedRentalId || refs.rentalSelect.value);
-  const durationUnit = refs.rentalDurationUnit.value || "day";
-  const duration = getRentalDurationInfo(durationUnit);
+  const duration = getRentalDurationInfo();
 
   if (!selected) {
     refs.rentalTotalPrice.value = "Выберите аренду";
@@ -513,10 +501,9 @@ function updateRentalTotalPrice() {
     return;
   }
 
-  const unitPrice = getRentalPrice(selected, durationUnit);
-  const total = unitPrice * duration.count;
-  refs.rentalDurationCount.value = `${duration.count} ${getDurationCountLabel(durationUnit, duration.count)}`;
-  refs.rentalTotalPrice.value = `${formatPrice(total)} (${duration.count} × ${getDurationUnitLabel(durationUnit)})`;
+  const best = calculateBestRentalCost(selected, duration.count);
+  refs.rentalDurationCount.value = `${duration.count} ${pluralizeDays(duration.count)}`;
+  refs.rentalTotalPrice.value = `${formatPrice(best.total)} (${formatBundleLabel(best.bundle)})`;
 }
 
 async function onFormSubmit(event) {
@@ -628,27 +615,25 @@ async function onRentalFormSubmit(event) {
     return;
   }
 
-  const durationUnit = String(formData.get("durationUnit") || "day");
-  const duration = getRentalDurationInfo(durationUnit);
+  const duration = getRentalDurationInfo();
 
   if (!duration.valid) {
     refs.rentalFormNote.textContent = duration.message;
     return;
   }
 
-  const unitPrice = getRentalPrice(rental, durationUnit);
-  const totalPrice = unitPrice * duration.count;
+  const best = calculateBestRentalCost(rental, duration.count);
   const requestDetails = {
     firstName: formData.get("firstName"),
     lastName: formData.get("lastName"),
     rentalTitle: rental.title,
     rentalCategory: formatRentalCategory(rental.category),
-    durationUnit,
     durationCount: duration.count,
+    pricingBreakdown: formatBundleLabel(best.bundle),
     dateRange: `${formData.get("startDate")} - ${formData.get("endDate")}`,
     startDate: formData.get("startDate"),
     endDate: formData.get("endDate"),
-    totalPrice: formatPrice(totalPrice),
+    totalPrice: formatPrice(best.total),
     pickupPoint: formData.get("pickupPoint"),
     contact: formData.get("contact"),
     email: formData.get("email")
@@ -659,9 +644,9 @@ async function onRentalFormSubmit(event) {
     `Имя и фамилия: ${requestDetails.firstName} ${requestDetails.lastName}`,
     `Позиция: ${requestDetails.rentalTitle}`,
     `Категория: ${requestDetails.rentalCategory}`,
-    `Тариф: ${getDurationUnitLabel(requestDetails.durationUnit)}`,
-    `Период тарифа: ${requestDetails.durationCount} ${getDurationCountLabel(requestDetails.durationUnit, requestDetails.durationCount)}`,
+    `Период аренды: ${requestDetails.durationCount} ${pluralizeDays(requestDetails.durationCount)}`,
     `Диапазон дат: ${requestDetails.dateRange}`,
+    `Расчет: ${requestDetails.pricingBreakdown}`,
     `Итоговая стоимость: ${requestDetails.totalPrice}`,
     `Отель/точка подачи: ${requestDetails.pickupPoint}`,
     `Контакт: ${requestDetails.contact}`,
@@ -682,9 +667,9 @@ async function onRentalFormSubmit(event) {
       if (result.ok) {
         refs.rentalFormNote.textContent = "Заявка на аренду отправлена. Мы свяжемся с вами в ближайшее время.";
         refs.rentalForm.reset();
-        refs.rentalDurationUnit.value = "day";
-        refs.rentalDurationCount.value = "1 день";
+        refs.rentalDurationCount.value = "-";
         state.selectedRentalId = "";
+        syncRentalRangeConstraints();
         updateRentalTotalPrice();
         showStatusDialog({
           title: "Мы приняли вашу заявку",
@@ -801,8 +786,8 @@ async function sendRentalRequestViaEmailService(requestDetails, message) {
     payload.append("name", `${requestDetails.firstName} ${requestDetails.lastName}`);
     payload.append("rental", requestDetails.rentalTitle);
     payload.append("category", requestDetails.rentalCategory);
-    payload.append("durationUnit", getDurationUnitLabel(requestDetails.durationUnit));
     payload.append("durationCount", String(requestDetails.durationCount));
+    payload.append("pricingBreakdown", requestDetails.pricingBreakdown);
     payload.append("startDate", requestDetails.startDate);
     payload.append("endDate", requestDetails.endDate);
     payload.append("dateRange", requestDetails.dateRange);
@@ -934,7 +919,7 @@ function syncRentalRangeConstraints() {
   }
 }
 
-function getRentalDurationInfo(durationUnit) {
+function getRentalDurationInfo() {
   const startDate = refs.rentalStartDate.value;
   const endDate = refs.rentalEndDate.value;
 
@@ -958,14 +943,6 @@ function getRentalDurationInfo(durationUnit) {
   const end = new Date(`${endDate}T00:00:00`);
   const days = Math.max(1, Math.floor((end - start) / 86400000) + 1);
 
-  if (durationUnit === "month") {
-    return { valid: true, count: Math.max(1, Math.ceil(days / 30)), message: "" };
-  }
-
-  if (durationUnit === "year") {
-    return { valid: true, count: Math.max(1, Math.ceil(days / 365)), message: "" };
-  }
-
   return { valid: true, count: days, message: "" };
 }
 
@@ -988,6 +965,10 @@ function getRentalImages(rental) {
 function getRentalPrice(rental, durationUnit) {
   const prices = rental?.prices || {};
 
+  if (durationUnit === "week") {
+    return Number(prices.week) || 0;
+  }
+
   if (durationUnit === "month") {
     return Number(prices.month) || 0;
   }
@@ -1000,7 +981,7 @@ function getRentalPrice(rental, durationUnit) {
 }
 
 function formatRentalPriceSummary(rental) {
-  return `${formatPrice(getRentalPrice(rental, "day"))} / день • ${formatPrice(getRentalPrice(rental, "month"))} / месяц • ${formatPrice(getRentalPrice(rental, "year"))} / год`;
+  return `${formatPrice(getRentalPrice(rental, "day"))} / день • ${formatPrice(getRentalPrice(rental, "week"))} / неделя • ${formatPrice(getRentalPrice(rental, "month"))} / месяц • ${formatPrice(getRentalPrice(rental, "year"))} / год`;
 }
 
 function formatPrice(value) {
@@ -1028,24 +1009,98 @@ function formatRentalCategory(category) {
   return labels[category] || capitalize(category);
 }
 
-function getDurationUnitLabel(unit) {
-  const labels = {
-    day: "День",
-    month: "Месяц",
-    year: "Год"
-  };
+function calculateBestRentalCost(rental, totalDays) {
+  const units = [
+    { key: "year", days: 365 },
+    { key: "month", days: 30 },
+    { key: "week", days: 7 },
+    { key: "day", days: 1 }
+  ];
 
-  return labels[unit] || "День";
+  const dp = Array(totalDays + 1).fill(Infinity);
+  const pick = Array(totalDays + 1).fill(null);
+  dp[0] = 0;
+
+  for (let d = 1; d <= totalDays; d += 1) {
+    for (const unit of units) {
+      if (d < unit.days) {
+        continue;
+      }
+
+      const price = getRentalPrice(rental, unit.key);
+      if (!price || !Number.isFinite(price)) {
+        continue;
+      }
+
+      const prev = dp[d - unit.days];
+      if (!Number.isFinite(prev)) {
+        continue;
+      }
+
+      const candidate = prev + price;
+      if (candidate < dp[d]) {
+        dp[d] = candidate;
+        pick[d] = unit.key;
+      }
+    }
+  }
+
+  if (!Number.isFinite(dp[totalDays])) {
+    return {
+      total: getRentalPrice(rental, "day") * totalDays,
+      bundle: { day: totalDays, week: 0, month: 0, year: 0 }
+    };
+  }
+
+  const bundle = { day: 0, week: 0, month: 0, year: 0 };
+  let cursor = totalDays;
+
+  while (cursor > 0) {
+    const key = pick[cursor] || "day";
+    const unitDays = key === "year" ? 365 : key === "month" ? 30 : key === "week" ? 7 : 1;
+    bundle[key] += 1;
+    cursor -= unitDays;
+  }
+
+  return {
+    total: dp[totalDays],
+    bundle
+  };
 }
 
-function getDurationCountLabel(unit, count) {
-  if (unit === "month") {
-    return count === 1 ? "месяц" : "мес.";
+function formatBundleLabel(bundle) {
+  const parts = [];
+
+  if (bundle.year) {
+    parts.push(`${bundle.year} ${bundle.year === 1 ? "год" : "года"}`);
   }
 
-  if (unit === "year") {
-    return count === 1 ? "год" : "лет";
+  if (bundle.month) {
+    parts.push(`${bundle.month} ${bundle.month === 1 ? "месяц" : "мес."}`);
   }
 
-  return count === 1 ? "день" : "дн.";
+  if (bundle.week) {
+    parts.push(`${bundle.week} ${bundle.week === 1 ? "неделя" : "нед."}`);
+  }
+
+  if (bundle.day) {
+    parts.push(`${bundle.day} ${pluralizeDays(bundle.day)}`);
+  }
+
+  return parts.length ? parts.join(" + ") : "0 дней";
+}
+
+function pluralizeDays(count) {
+  const mod10 = count % 10;
+  const mod100 = count % 100;
+
+  if (mod10 === 1 && mod100 !== 11) {
+    return "день";
+  }
+
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) {
+    return "дня";
+  }
+
+  return "дней";
 }

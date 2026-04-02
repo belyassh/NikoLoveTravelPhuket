@@ -30,15 +30,8 @@
       </a>
 
       <nav class="main-nav" aria-label="Главная навигация">
-        <a href="#catalog">Витрина</a>
-        <div class="nav-dropdown">
-          <a href="#rental" aria-haspopup="true" aria-expanded="false">Аренда</a>
-          <div class="nav-dropdown-menu" role="menu" aria-label="Подразделы аренды">
-            <a href="#rental" data-rental-category="moto" role="menuitem">Мото</a>
-            <a href="#rental" data-rental-category="auto" role="menuitem">Авто</a>
-            <a href="#rental" data-rental-category="yachts-catamarans" role="menuitem">Яхты и катамараны</a>
-          </div>
-        </div>
+        <a href="#catalog">Экскурсии</a>
+        <a href="#rental">Аренда</a>
         <a href="#request">Заявка</a>
         <a href="#rental-request">Заявка на аренду</a>
         <a href="#faq">FAQ</a>
@@ -220,18 +213,9 @@
               </select>
             </label>
 
-            <label class="field">
-              <span>Тариф</span>
-              <select id="rentalDurationUnit" name="durationUnit" required>
-                <option value="day">День</option>
-                <option value="month">Месяц</option>
-                <option value="year">Год</option>
-              </select>
-            </label>
-
-            <label class="field">
+            <label class="field field-wide">
               <span>Расчетный период</span>
-              <input id="rentalDurationCount" name="durationCount" type="text" value="1 день" readonly />
+              <input id="rentalDurationCount" name="durationCount" type="text" value="-" readonly />
             </label>
 
             <label class="field">
