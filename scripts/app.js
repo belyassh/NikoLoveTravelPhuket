@@ -16,6 +16,8 @@ const FALLBACK_IMAGE =
   "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80";
 
 const INPUT_DEBOUNCE_MS = 120;
+const DATA_CACHE_TTL_MS = 5 * 60 * 1000;
+const DATA_CACHE_PREFIX = "vibe-trip:data:";
 
 let priceFormatter = null;
 let horizontalClampQueued = false;
@@ -68,21 +70,10 @@ initialize().catch((error) => {
 });
 
 async function initialize() {
-  const [excursionsResponse, rentalsResponse] = await Promise.all([
-    fetch("data/excursions.json"),
-    fetch("data/rentals.json")
+  const [excursionsData, rentalsData] = await Promise.all([
+    loadJsonData("data/excursions.json", "экскурсий"),
+    loadJsonData("data/rentals.json", "аренды")
   ]);
-
-  if (!excursionsResponse.ok) {
-    throw new Error(`Ошибка загрузки экскурсий: ${excursionsResponse.status}`);
-  }
-
-  if (!rentalsResponse.ok) {
-    throw new Error(`Ошибка загрузки аренды: ${rentalsResponse.status}`);
-  }
-
-  const excursionsData = await excursionsResponse.json();
-  const rentalsData = await rentalsResponse.json();
 
   state.excursions = (excursionsData.excursions ?? []).map((item) => ({
     ...item,
@@ -1116,6 +1107,67 @@ function debounce(fn, wait) {
     clearTimeout(timeoutId);
     timeoutId = setTimeout(() => fn(...args), wait);
   };
+}
+
+async function loadJsonData(url, label) {
+  const cacheKey = `${DATA_CACHE_PREFIX}${url}`;
+  const cached = readCachedJson(cacheKey);
+  const isFresh = cached && Date.now() - cached.timestamp <= DATA_CACHE_TTL_MS;
+
+  if (isFresh) {
+    return cached.payload;
+  }
+
+  try {
+    const response = await fetch(url, { cache: "no-store" });
+
+    if (!response.ok) {
+      throw new Error(`Ошибка загрузки ${label}: ${response.status}`);
+    }
+
+    const payload = await response.json();
+    writeCachedJson(cacheKey, payload);
+    return payload;
+  } catch (error) {
+    if (cached) {
+      return cached.payload;
+    }
+
+    throw error;
+  }
+}
+
+function readCachedJson(cacheKey) {
+  try {
+    const raw = localStorage.getItem(cacheKey);
+    if (!raw) {
+      return null;
+    }
+
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== "object") {
+      return null;
+    }
+
+    if (!Number.isFinite(parsed.timestamp) || !("payload" in parsed)) {
+      return null;
+    }
+
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function writeCachedJson(cacheKey, payload) {
+  try {
+    localStorage.setItem(cacheKey, JSON.stringify({
+      timestamp: Date.now(),
+      payload
+    }));
+  } catch {
+    // Ignore quota and private mode failures to keep UX unaffected.
+  }
 }
 
 function capitalize(value) {
