@@ -97,6 +97,7 @@ main,
 .site-footer {
   width: min(1120px, calc(100% - 2rem));
   margin-inline: auto;
+  max-width: 100%;
 }
 
 .site-header {
@@ -215,6 +216,8 @@ main {
   background: rgba(255, 254, 248, 0.9);
   box-shadow: var(--shadow);
   padding: clamp(1.2rem, 2.5vw, 2rem);
+  max-width: 100%;
+  overflow: hidden;
 }
 
 .kicker {
@@ -230,12 +233,14 @@ main {
 .hero h1 {
   font-size: clamp(1.7rem, 4.8vw, 2.8rem);
   margin-bottom: 1rem;
+  overflow-wrap: anywhere;
 }
 
 .hero-copy {
   max-width: 760px;
   color: var(--muted);
   line-height: 1.55;
+  overflow-wrap: anywhere;
 }
 
 .hero-actions {
@@ -287,6 +292,11 @@ main {
 .section-head p {
   color: var(--muted);
   max-width: 480px;
+  overflow-wrap: anywhere;
+}
+
+.section-head > * {
+  min-width: 0;
 }
 
 .catalog-controls {
@@ -333,6 +343,7 @@ textarea:focus {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 0.9rem;
+  min-width: 0;
 }
 
 .tour-card {
@@ -696,7 +707,7 @@ textarea:focus {
   .site-header,
   main,
   .site-footer {
-    width: min(1120px, calc(100% - 1.6rem));
+    width: min(1120px, calc(100% - 2rem));
   }
 
   .main-nav {
@@ -796,7 +807,7 @@ textarea:focus {
   .site-header,
   main,
   .site-footer {
-    width: calc(100% - 1.2rem);
+    width: calc(100% - 1.6rem);
   }
 
   .brand {
