@@ -42,7 +42,6 @@ const refs = {
   mainNav: document.querySelector("#mainNav"),
   mobileMenuToggle: document.querySelector("#mobileMenuToggle"),
   mobileMenuClose: document.querySelector("#mobileMenuClose"),
-  mobileMenuBackdrop: document.querySelector("#mobileMenuBackdrop"),
   detailsDialog: document.querySelector("#detailsDialog"),
   detailsContent: document.querySelector("#detailsContent"),
   dialogClose: document.querySelector("#dialogClose"),
@@ -116,10 +115,27 @@ function bindEvents() {
   refs.dialogClose.addEventListener("click", closeDialog);
   refs.mobileMenuToggle.addEventListener("click", openMobileMenu);
   refs.mobileMenuClose.addEventListener("click", closeMobileMenu);
-  refs.mobileMenuBackdrop.addEventListener("click", closeMobileMenu);
 
   refs.mainNav.querySelectorAll("a").forEach((link) => {
-    link.addEventListener("click", closeMobileMenu);
+    link.addEventListener("click", (event) => {
+      const href = link.getAttribute("href") || "";
+      if (!href.startsWith("#")) {
+        closeMobileMenu();
+        return;
+      }
+
+      const target = document.querySelector(href);
+      if (!target) {
+        closeMobileMenu();
+        return;
+      }
+
+      event.preventDefault();
+      closeMobileMenu();
+      requestAnimationFrame(() => {
+        target.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    });
   });
 
   window.addEventListener("keydown", (event) => {

@@ -194,13 +194,7 @@ main,
 }
 
 .mobile-menu-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(20, 32, 39, 0.38);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 180ms ease;
-  z-index: 15;
+  display: none !important;
 }
 
 main {
@@ -716,8 +710,11 @@ textarea:focus {
     display: grid;
     align-content: start;
     gap: 0.6rem;
-    transform: translateX(105%);
+    transform: translateX(calc(100% + 2rem));
     transition: transform 220ms ease;
+    visibility: hidden;
+    pointer-events: none;
+    will-change: transform;
   }
 
   .main-nav a {
@@ -728,8 +725,7 @@ textarea:focus {
   }
 
   .mobile-menu-toggle,
-  .mobile-menu-close,
-  .mobile-menu-backdrop {
+  .mobile-menu-close {
     display: block;
   }
 
@@ -740,10 +736,7 @@ textarea:focus {
 
   body.mobile-menu-open .main-nav {
     transform: translateX(0);
-  }
-
-  body.mobile-menu-open .mobile-menu-backdrop {
-    opacity: 1;
+    visibility: visible;
     pointer-events: auto;
   }
 
