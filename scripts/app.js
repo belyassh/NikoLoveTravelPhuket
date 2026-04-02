@@ -95,6 +95,7 @@ async function initialize() {
   renderCards(state.filtered);
   renderRentalCards(state.filteredRentals);
   bindEvents();
+  enforceHorizontalViewport();
   updateTotalPrice();
   syncRentalRangeConstraints();
   updateRentalTotalPrice();
@@ -148,7 +149,15 @@ function bindEvents() {
     if (window.innerWidth > 900) {
       closeMobileMenu();
     }
+
+    enforceHorizontalViewport();
   });
+
+  window.addEventListener("scroll", enforceHorizontalViewport, { passive: true });
+
+  window.addEventListener("touchend", () => {
+    requestAnimationFrame(enforceHorizontalViewport);
+  }, { passive: true });
 
   refs.detailsDialog.addEventListener("click", (event) => {
     const { target } = event;
@@ -190,6 +199,12 @@ function closeMobileMenu() {
   refs.mainNav.classList.remove("is-open");
   document.body.style.overflow = "";
   refs.mobileMenuToggle.setAttribute("aria-expanded", "false");
+}
+
+function enforceHorizontalViewport() {
+  if (window.scrollX !== 0) {
+    window.scrollTo(0, window.scrollY);
+  }
 }
 
 function setupManagerLink() {

@@ -19,7 +19,8 @@
 
 html {
   scroll-behavior: smooth;
-  overflow-x: clip;
+  overflow-x: hidden;
+  max-width: 100%;
 }
 
 body {
@@ -34,6 +35,8 @@ body {
   overflow-x: hidden;
   overscroll-behavior-x: none;
   touch-action: pan-y;
+  width: 100%;
+  max-width: 100%;
 }
 
 h1,
@@ -374,7 +377,8 @@ textarea:focus {
 .tour-card-overview {
   color: var(--muted);
   font-size: 0.95rem;
-  line-height: 1.45;
+  max-width: 100%;
+  min-width: 0;
 }
 
 .rental-card-meta {
@@ -409,6 +413,14 @@ textarea:focus {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.9rem;
+}
+
+.catalog-controls > * {
+  min-width: 0;
+}
+
+.form-grid > * {
+  min-width: 0;
 }
 
 .field-wide {
@@ -753,6 +765,15 @@ textarea:focus {
     grid-template-columns: 1fr;
   }
 
+  .section-head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .catalog .section-head p {
+    display: none;
+  }
+
   .details-layout {
     min-height: auto;
   }
@@ -800,6 +821,16 @@ textarea:focus {
 
   .status-card {
     padding: 1rem;
+  }
+
+  .status-actions {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .status-actions .btn {
+    width: 100%;
   }
 }
 
