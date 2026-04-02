@@ -19,6 +19,7 @@
 
 html {
   scroll-behavior: smooth;
+  overflow-x: clip;
 }
 
 body {
@@ -31,6 +32,8 @@ body {
     var(--bg);
   min-height: 100vh;
   overflow-x: hidden;
+  overscroll-behavior-x: none;
+  touch-action: pan-y;
 }
 
 h1,
@@ -693,7 +696,7 @@ textarea:focus {
   .site-header,
   main,
   .site-footer {
-    width: min(1120px, calc(100% - 1.25rem));
+    width: min(1120px, calc(100% - 1.6rem));
   }
 
   .main-nav {
@@ -776,8 +779,12 @@ textarea:focus {
   }
 
   .hero-actions .btn {
-    width: 100%;
+    width: min(100%, 420px);
     justify-content: center;
+  }
+
+  .hero-actions {
+    justify-content: flex-start;
   }
 
   .status-card {
@@ -789,7 +796,7 @@ textarea:focus {
   .site-header,
   main,
   .site-footer {
-    width: calc(100% - 0.8rem);
+    width: calc(100% - 1.2rem);
   }
 
   .brand {
@@ -812,6 +819,10 @@ textarea:focus {
 
   .hero-copy {
     font-size: 0.98rem;
+  }
+
+  .hero-actions .btn {
+    width: 100%;
   }
 
   .main-nav {
