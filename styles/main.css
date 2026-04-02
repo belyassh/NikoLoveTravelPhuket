@@ -275,6 +275,10 @@ textarea:focus {
   border-color: var(--brand);
 }
 
+.input-muted {
+  color: var(--muted);
+}
+
 .cards-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));

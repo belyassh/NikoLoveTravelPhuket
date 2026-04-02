@@ -294,7 +294,7 @@ function renderRentalCards(items) {
     node.querySelector(".tour-card-title").textContent = item.title;
     node.querySelector(".tour-card-overview").textContent = item.overview;
     node.querySelector(".rental-card-meta").textContent = `${formatRentalCategory(item.category)} • ${item.transmission}`;
-    node.querySelector(".tour-card-price").textContent = `От ${formatPrice(getRentalPrice(item, "month"))} / месяц • ${formatPrice(getRentalPrice(item, "week"))} / неделя`;
+    node.querySelector(".tour-card-price").textContent = `От ${formatPrice(getRentalPrice(item, "day"))} / день`;
 
     const detailsBtn = node.querySelector('[data-action="details"]');
     const requestBtn = node.querySelector('[data-action="request"]');
@@ -490,20 +490,20 @@ function updateRentalTotalPrice() {
   const duration = getRentalDurationInfo();
 
   if (!selected) {
-    refs.rentalTotalPrice.value = "Выберите аренду";
-    refs.rentalDurationCount.value = "-";
+    setRentalAutoCalculatedState();
     return;
   }
 
   if (!duration.valid) {
-    refs.rentalTotalPrice.value = duration.message;
-    refs.rentalDurationCount.value = "-";
+    setRentalAutoCalculatedState();
     return;
   }
 
   const best = calculateBestRentalCost(selected, duration.count);
   refs.rentalDurationCount.value = `${duration.count} ${pluralizeDays(duration.count)}`;
   refs.rentalTotalPrice.value = `${formatPrice(best.total)} (${formatBundleLabel(best.bundle)})`;
+  refs.rentalDurationCount.classList.remove("input-muted");
+  refs.rentalTotalPrice.classList.remove("input-muted");
 }
 
 async function onFormSubmit(event) {
@@ -667,7 +667,6 @@ async function onRentalFormSubmit(event) {
       if (result.ok) {
         refs.rentalFormNote.textContent = "Заявка на аренду отправлена. Мы свяжемся с вами в ближайшее время.";
         refs.rentalForm.reset();
-        refs.rentalDurationCount.value = "-";
         state.selectedRentalId = "";
         syncRentalRangeConstraints();
         updateRentalTotalPrice();
@@ -1103,4 +1102,11 @@ function pluralizeDays(count) {
   }
 
   return "дней";
+}
+
+function setRentalAutoCalculatedState() {
+  refs.rentalDurationCount.value = "Рассчитывается автоматически";
+  refs.rentalTotalPrice.value = "Рассчитывается автоматически";
+  refs.rentalDurationCount.classList.add("input-muted");
+  refs.rentalTotalPrice.classList.add("input-muted");
 }

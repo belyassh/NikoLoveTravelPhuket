@@ -213,14 +213,24 @@
               </select>
             </label>
 
+            <label class="field">
+              <span>Дата начала аренды</span>
+              <input id="rentalStartDate" name="startDate" type="date" required />
+            </label>
+
+            <label class="field">
+              <span>Дата окончания аренды</span>
+              <input id="rentalEndDate" name="endDate" type="date" required />
+            </label>
+
             <label class="field field-wide">
               <span>Расчетный период</span>
-              <input id="rentalDurationCount" name="durationCount" type="text" value="-" readonly />
+              <input id="rentalDurationCount" class="input-muted" name="durationCount" type="text" value="Рассчитывается автоматически" readonly />
             </label>
 
             <label class="field">
               <span>Итоговая стоимость</span>
-              <input id="rentalTotalPrice" name="totalPrice" type="text" readonly />
+              <input id="rentalTotalPrice" class="input-muted" name="totalPrice" type="text" value="Рассчитывается автоматически" readonly />
             </label>
 
             <label class="field field-wide">
@@ -231,16 +241,6 @@
                 placeholder="Например: Hilton Garden Inn или точка на карте"
                 required
               />
-            </label>
-
-            <label class="field">
-              <span>Дата начала аренды</span>
-              <input id="rentalStartDate" name="startDate" type="date" required />
-            </label>
-
-            <label class="field">
-              <span>Дата окончания аренды</span>
-              <input id="rentalEndDate" name="endDate" type="date" required />
             </label>
 
             <label class="field">
