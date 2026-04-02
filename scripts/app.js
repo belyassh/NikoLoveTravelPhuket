@@ -3,6 +3,8 @@ const state = {
   filtered: [],
   rentals: [],
   filteredRentals: [],
+  rentalsLoaded: false,
+  rentalLoadPromise: null,
   selectedId: "",
   selectedRentalId: "",
   telegramUsername: "",
@@ -25,6 +27,8 @@ let horizontalClampQueued = false;
 const refs = {
   cardsGrid: document.querySelector("#cardsGrid"),
   cardTemplate: document.querySelector("#cardTemplate"),
+  rentalSection: document.querySelector("#rental"),
+  rentalRequestSection: document.querySelector("#rental-request"),
   rentalCardsGrid: document.querySelector("#rentalCardsGrid"),
   rentalCardTemplate: document.querySelector("#rentalCardTemplate"),
   searchInput: document.querySelector("#searchInput"),
@@ -70,21 +74,13 @@ initialize().catch((error) => {
 });
 
 async function initialize() {
-  const [excursionsData, rentalsData] = await Promise.all([
-    loadJsonData("data/excursions.json", "экскурсий"),
-    loadJsonData("data/rentals.json", "аренды")
-  ]);
+  const excursionsData = await loadJsonData("data/excursions.json", "экскурсий");
 
   state.excursions = (excursionsData.excursions ?? []).map((item) => ({
     ...item,
     _searchIndex: buildExcursionSearchIndex(item)
   }));
   state.filtered = [...state.excursions];
-  state.rentals = (rentalsData.rentals ?? []).map((item) => ({
-    ...item,
-    _searchIndex: buildRentalSearchIndex(item)
-  }));
-  state.filteredRentals = [...state.rentals];
   state.currency = excursionsData.agency?.currency ?? "USD";
   priceFormatter = createPriceFormatter(state.currency);
   state.telegramUsername = normalizeTelegramUsername(excursionsData.telegram?.managerUsername);
@@ -92,12 +88,16 @@ async function initialize() {
 
   setupManagerLink();
   populateTagFilter();
-  populateRentalTagFilter();
   populateExcursionSelect();
-  populateRentalSelect();
   renderCards(state.filtered);
-  renderRentalCards(state.filteredRentals);
+  setupDeferredRentalState();
   bindEvents();
+  setupRentalLazyLoading();
+
+  if (window.location.hash === "#rental" || window.location.hash === "#rental-request") {
+    void ensureRentalsLoaded();
+  }
+
   enforceHorizontalViewport();
   updateTotalPrice();
   syncRentalRangeConstraints();
@@ -107,8 +107,16 @@ async function initialize() {
 function bindEvents() {
   refs.searchInput.addEventListener("input", debounce(applyFilters, INPUT_DEBOUNCE_MS));
   refs.tagFilter.addEventListener("change", applyFilters);
-  refs.rentalSearchInput.addEventListener("input", debounce(applyRentalFilters, INPUT_DEBOUNCE_MS));
-  refs.rentalTagFilter.addEventListener("change", applyRentalFilters);
+  refs.rentalSearchInput.addEventListener("input", debounce(async () => {
+    if (await ensureRentalsLoaded()) {
+      applyRentalFilters();
+    }
+  }, INPUT_DEBOUNCE_MS));
+  refs.rentalTagFilter.addEventListener("change", async () => {
+    if (await ensureRentalsLoaded()) {
+      applyRentalFilters();
+    }
+  });
   refs.excursionSelect.addEventListener("change", onSelectFromForm);
   refs.rentalSelect.addEventListener("change", onRentalSelectFromForm);
   refs.peopleInput.addEventListener("input", updateTotalPrice);
@@ -119,6 +127,15 @@ function bindEvents() {
   refs.dialogClose.addEventListener("click", closeDialog);
   refs.mobileMenuToggle.addEventListener("click", openMobileMenu);
   refs.mobileMenuClose.addEventListener("click", closeMobileMenu);
+
+  const loadRentalsOnIntent = () => {
+    void ensureRentalsLoaded();
+  };
+
+  refs.rentalSearchInput.addEventListener("focus", loadRentalsOnIntent, { once: true });
+  refs.rentalTagFilter.addEventListener("focus", loadRentalsOnIntent, { once: true });
+  refs.rentalSelect.addEventListener("focus", loadRentalsOnIntent, { once: true });
+  refs.rentalForm.addEventListener("pointerdown", loadRentalsOnIntent, { once: true, passive: true });
 
   refs.mainNav.querySelectorAll("a").forEach((link) => {
     link.addEventListener("click", (event) => {
@@ -258,6 +275,7 @@ function populateExcursionSelect() {
 }
 
 function populateRentalTagFilter() {
+  refs.rentalTagFilter.querySelectorAll('option:not([value="all"])').forEach((option) => option.remove());
   const categories = [...new Set(state.rentals.map((item) => item.category).filter(Boolean))].sort();
 
   for (const category of categories) {
@@ -269,6 +287,7 @@ function populateRentalTagFilter() {
 }
 
 function populateRentalSelect() {
+  refs.rentalSelect.querySelectorAll('option:not([value=""])').forEach((option) => option.remove());
   const fragment = document.createDocumentFragment();
 
   for (const rental of state.rentals) {
@@ -331,6 +350,10 @@ function renderCards(items) {
 }
 
 function applyRentalFilters() {
+  if (!state.rentalsLoaded) {
+    return;
+  }
+
   const query = refs.rentalSearchInput.value.trim().toLowerCase();
   const category = refs.rentalTagFilter.value;
 
@@ -442,6 +465,12 @@ function openRentalDetails(rentalId) {
 }
 
 async function requestRental(rentalId) {
+  const rentalsReady = await ensureRentalsLoaded();
+  if (!rentalsReady) {
+    refs.rentalFormNote.textContent = "Не удалось загрузить данные аренды.";
+    return;
+  }
+
   const rental = getRentalById(rentalId);
   if (!rental) {
     return;
@@ -672,6 +701,12 @@ async function onFormSubmit(event) {
 async function onRentalFormSubmit(event) {
   event.preventDefault();
   syncRentalRangeConstraints();
+
+  const rentalsReady = await ensureRentalsLoaded();
+  if (!rentalsReady) {
+    refs.rentalFormNote.textContent = "Не удалось загрузить данные аренды.";
+    return;
+  }
 
   if (!refs.rentalForm.checkValidity()) {
     refs.rentalForm.reportValidity();
@@ -1107,6 +1142,84 @@ function debounce(fn, wait) {
     clearTimeout(timeoutId);
     timeoutId = setTimeout(() => fn(...args), wait);
   };
+}
+
+function setupDeferredRentalState() {
+  refs.rentalCardsGrid.replaceChildren(createEmptyState("Загружаем варианты аренды..."));
+  setRentalControlsEnabled(false);
+}
+
+function setRentalControlsEnabled(isEnabled) {
+  refs.rentalSearchInput.disabled = !isEnabled;
+  refs.rentalTagFilter.disabled = !isEnabled;
+  refs.rentalSelect.disabled = !isEnabled;
+}
+
+function setupRentalLazyLoading() {
+  if (!("IntersectionObserver" in window)) {
+    void ensureRentalsLoaded();
+    return;
+  }
+
+  const targets = [refs.rentalSection, refs.rentalRequestSection].filter(Boolean);
+  if (!targets.length) {
+    void ensureRentalsLoaded();
+    return;
+  }
+
+  const observer = new IntersectionObserver((entries) => {
+    if (!entries.some((entry) => entry.isIntersecting)) {
+      return;
+    }
+
+    observer.disconnect();
+    void ensureRentalsLoaded();
+  }, {
+    rootMargin: "300px 0px"
+  });
+
+  targets.forEach((target) => observer.observe(target));
+}
+
+function applyRentalsData(rentalsData) {
+  state.rentals = (rentalsData.rentals ?? []).map((item) => ({
+    ...item,
+    _searchIndex: buildRentalSearchIndex(item)
+  }));
+  state.filteredRentals = [...state.rentals];
+  populateRentalTagFilter();
+  populateRentalSelect();
+  renderRentalCards(state.filteredRentals);
+  setRentalControlsEnabled(true);
+  updateRentalTotalPrice();
+}
+
+async function ensureRentalsLoaded() {
+  if (state.rentalsLoaded) {
+    return true;
+  }
+
+  if (state.rentalLoadPromise) {
+    return state.rentalLoadPromise;
+  }
+
+  state.rentalLoadPromise = (async () => {
+    try {
+      const rentalsData = await loadJsonData("data/rentals.json", "аренды");
+      applyRentalsData(rentalsData);
+      state.rentalsLoaded = true;
+      return true;
+    } catch (error) {
+      refs.rentalCardsGrid.replaceChildren(createEmptyState("Не удалось загрузить данные аренды."));
+      refs.rentalFormNote.textContent = "Ошибка загрузки данных аренды.";
+      console.error(error);
+      return false;
+    } finally {
+      state.rentalLoadPromise = null;
+    }
+  })();
+
+  return state.rentalLoadPromise;
 }
 
 async function loadJsonData(url, label) {
