@@ -31,7 +31,16 @@
 
       <nav class="main-nav" aria-label="Главная навигация">
         <a href="#catalog">Витрина</a>
+        <div class="nav-dropdown">
+          <a href="#rental" aria-haspopup="true" aria-expanded="false">Аренда</a>
+          <div class="nav-dropdown-menu" role="menu" aria-label="Подразделы аренды">
+            <a href="#rental" data-rental-category="moto" role="menuitem">Мото</a>
+            <a href="#rental" data-rental-category="auto" role="menuitem">Авто</a>
+            <a href="#rental" data-rental-category="yachts-catamarans" role="menuitem">Яхты и катамараны</a>
+          </div>
+        </div>
         <a href="#request">Заявка</a>
+        <a href="#rental-request">Заявка на аренду</a>
         <a href="#faq">FAQ</a>
         <a href="#contacts">Контакты</a>
       </nav>
@@ -49,6 +58,7 @@
         <div class="hero-actions">
           <a class="btn btn-primary" href="#catalog">Смотреть экскурсии</a>
           <a class="btn btn-ghost" href="#request">Рассчитать стоимость</a>
+          <a class="btn btn-ghost" href="#rental-request">Оставить заявку на аренду</a>
         </div>
       </section>
 
@@ -73,6 +83,29 @@
         </div>
 
         <div id="cardsGrid" class="cards-grid" aria-live="polite"></div>
+      </section>
+
+      <section class="catalog" id="rental">
+        <div class="section-head">
+          <h2>Интерактивная витрина аренды</h2>
+          <p>Выбирайте технику и транспорт по категории, бюджету и условиям.</p>
+        </div>
+
+        <div class="catalog-controls">
+          <label class="field">
+            <span>Поиск по аренде</span>
+            <input id="rentalSearchInput" type="search" placeholder="Например: скутер, SUV, катамаран" />
+          </label>
+
+          <label class="field">
+            <span>Категория аренды</span>
+            <select id="rentalTagFilter">
+              <option value="all">Все категории</option>
+            </select>
+          </label>
+        </div>
+
+        <div id="rentalCardsGrid" class="cards-grid" aria-live="polite"></div>
       </section>
 
       <section class="request" id="request">
@@ -162,6 +195,97 @@
         </form>
       </section>
 
+      <section class="request" id="rental-request">
+        <div class="section-head">
+          <h2>Заявка на аренду</h2>
+          <p>Оставьте параметры аренды, и менеджер подтвердит доступность и итоговую цену.</p>
+        </div>
+
+        <form id="rentalRequestForm" class="request-form" novalidate>
+          <div class="form-grid">
+            <label class="field">
+              <span>Имя</span>
+              <input name="firstName" type="text" required />
+            </label>
+
+            <label class="field">
+              <span>Фамилия</span>
+              <input name="lastName" type="text" required />
+            </label>
+
+            <label class="field field-wide">
+              <span>Что хотите арендовать</span>
+              <select id="rentalSelect" name="rentalId" required>
+                <option value="">Выберите вариант аренды</option>
+              </select>
+            </label>
+
+            <label class="field">
+              <span>Тариф</span>
+              <select id="rentalDurationUnit" name="durationUnit" required>
+                <option value="day">День</option>
+                <option value="month">Месяц</option>
+                <option value="year">Год</option>
+              </select>
+            </label>
+
+            <label class="field">
+              <span>Расчетный период</span>
+              <input id="rentalDurationCount" name="durationCount" type="text" value="1 день" readonly />
+            </label>
+
+            <label class="field">
+              <span>Итоговая стоимость</span>
+              <input id="rentalTotalPrice" name="totalPrice" type="text" readonly />
+            </label>
+
+            <label class="field field-wide">
+              <span>Отель или место подачи</span>
+              <input
+                name="pickupPoint"
+                type="text"
+                placeholder="Например: Hilton Garden Inn или точка на карте"
+                required
+              />
+            </label>
+
+            <label class="field">
+              <span>Дата начала аренды</span>
+              <input id="rentalStartDate" name="startDate" type="date" required />
+            </label>
+
+            <label class="field">
+              <span>Дата окончания аренды</span>
+              <input id="rentalEndDate" name="endDate" type="date" required />
+            </label>
+
+            <label class="field">
+              <span>Телефон или ник в Telegram</span>
+              <input name="contact" type="text" placeholder="+7..., @nickname" required />
+            </label>
+
+            <label class="field field-wide">
+              <span>Email для подтверждения</span>
+              <input name="email" type="email" placeholder="name@example.com" required />
+            </label>
+
+            <input
+              name="_gotcha"
+              type="text"
+              tabindex="-1"
+              autocomplete="off"
+              style="position:absolute;left:-9999px;opacity:0;pointer-events:none;"
+              aria-hidden="true"
+            />
+          </div>
+
+          <div class="form-actions">
+            <button class="btn btn-primary" type="submit">Отправить заявку на аренду</button>
+            <p id="rentalFormNote" class="form-note" aria-live="polite"></p>
+          </div>
+        </form>
+      </section>
+
       <section class="faq" id="faq">
         <div class="section-head">
           <h2>FAQ</h2>
@@ -234,6 +358,24 @@
             <div class="tour-card-actions">
               <button class="btn btn-small btn-ghost" type="button" data-action="details">Подробнее</button>
               <button class="btn btn-small btn-primary" type="button" data-action="select">Выбрать</button>
+            </div>
+          </div>
+        </div>
+      </article>
+    </template>
+
+    <template id="rentalCardTemplate">
+      <article class="tour-card reveal-up rental-card">
+        <img class="tour-card-image" alt="" loading="lazy" />
+        <div class="tour-card-body">
+          <h3 class="tour-card-title"></h3>
+          <p class="tour-card-overview"></p>
+          <p class="rental-card-meta"></p>
+          <div class="tour-card-foot">
+            <p class="tour-card-price"></p>
+            <div class="tour-card-actions">
+              <button class="btn btn-small btn-ghost" type="button" data-action="details">Подробнее</button>
+              <button class="btn btn-small btn-primary" type="button" data-action="request">Запросить</button>
             </div>
           </div>
         </div>

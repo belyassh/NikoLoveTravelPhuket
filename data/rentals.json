@@ -1,0 +1,73 @@
+{
+  "rentals": [
+    {
+      "id": "moto-scooter-150",
+      "title": "Скутер 150cc Urban Ride",
+      "overview": "Маневренный городской скутер для пляжей и коротких маршрутов.",
+      "description": "Идеален для перемещения по курорту без пробок. Экономичный расход топлива, удобное сиденье и багажный бокс.",
+      "category": "moto",
+      "prices": {
+        "day": 32,
+        "month": 540,
+        "year": 5200
+      },
+      "deposit": "200 USD",
+      "transmission": "Автомат",
+      "included": [
+        "Шлем для водителя",
+        "Базовая страховка",
+        "Доставка к отелю"
+      ],
+      "images": [
+        "https://images.unsplash.com/photo-1558981806-ec527fa84c39?auto=format&fit=crop&w=1200&q=80",
+        "https://images.unsplash.com/photo-1558981285-6f0c94958bb6?auto=format&fit=crop&w=1200&q=80"
+      ]
+    },
+    {
+      "id": "auto-suv-comfort",
+      "title": "SUV Comfort 5 мест",
+      "overview": "Просторный автомобиль для семьи и выездов за город.",
+      "description": "Комфортный кроссовер с кондиционером и большим багажником. Подходит для однодневных поездок по достопримечательностям.",
+      "category": "auto",
+      "prices": {
+        "day": 68,
+        "month": 1320,
+        "year": 14800
+      },
+      "deposit": "350 USD",
+      "transmission": "Автомат",
+      "included": [
+        "Страховка ОСАГО",
+        "Безлимитный пробег в городе",
+        "Поддержка 24/7"
+      ],
+      "images": [
+        "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&w=1200&q=80",
+        "https://images.unsplash.com/photo-1493238792000-8113da705763?auto=format&fit=crop&w=1200&q=80"
+      ]
+    },
+    {
+      "id": "yacht-catamaran-sunset",
+      "title": "Катамаран Sunset Cruise",
+      "overview": "Полудневный чартер для компании до 10 гостей.",
+      "description": "Приватный выход в море с купанием и закатом. Подходит для дней рождения, семейных прогулок и фотосессий.",
+      "category": "yachts-catamarans",
+      "prices": {
+        "day": 420,
+        "month": 8900,
+        "year": 97000
+      },
+      "deposit": "500 USD",
+      "transmission": "Капитан включен",
+      "included": [
+        "Экипаж и топливо в базовом пакете",
+        "Маски для снорклинга",
+        "Питьевая вода и лед"
+      ],
+      "images": [
+        "https://images.unsplash.com/photo-1569263979104-865ab7cd8d13?auto=format&fit=crop&w=1200&q=80",
+        "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80"
+      ]
+    }
+  ]
+}
