@@ -20,6 +20,8 @@ const FALLBACK_IMAGE =
 const INPUT_DEBOUNCE_MS = 120;
 const DATA_CACHE_TTL_MS = 5 * 60 * 1000;
 const DATA_CACHE_PREFIX = "vibe-trip:data:";
+const EXCURSIONS_DATA_URL = new URL("../data/excursions.json", import.meta.url).href;
+const RENTALS_DATA_URL = new URL("../data/rentals.json", import.meta.url).href;
 
 let priceFormatter = null;
 let horizontalClampQueued = false;
@@ -65,6 +67,8 @@ const refs = {
   gotoFaqBtn: document.querySelector("#gotoFaqBtn")
 };
 
+bindNavigationEvents();
+
 initialize().catch((error) => {
   refs.cardsGrid.innerHTML = '<div class="empty-state">Не удалось загрузить данные экскурсий.</div>';
   refs.rentalCardsGrid.innerHTML = '<div class="empty-state">Не удалось загрузить данные аренды.</div>';
@@ -74,7 +78,7 @@ initialize().catch((error) => {
 });
 
 async function initialize() {
-  const excursionsData = await loadJsonData("data/excursions.json", "экскурсий");
+  const excursionsData = await loadJsonData(EXCURSIONS_DATA_URL, "экскурсий");
 
   state.excursions = (excursionsData.excursions ?? []).map((item) => ({
     ...item,
@@ -104,38 +108,9 @@ async function initialize() {
   updateRentalTotalPrice();
 }
 
-function bindEvents() {
-  refs.searchInput.addEventListener("input", debounce(applyFilters, INPUT_DEBOUNCE_MS));
-  refs.tagFilter.addEventListener("change", applyFilters);
-  refs.rentalSearchInput.addEventListener("input", debounce(async () => {
-    if (await ensureRentalsLoaded()) {
-      applyRentalFilters();
-    }
-  }, INPUT_DEBOUNCE_MS));
-  refs.rentalTagFilter.addEventListener("change", async () => {
-    if (await ensureRentalsLoaded()) {
-      applyRentalFilters();
-    }
-  });
-  refs.excursionSelect.addEventListener("change", onSelectFromForm);
-  refs.rentalSelect.addEventListener("change", onRentalSelectFromForm);
-  refs.peopleInput.addEventListener("input", updateTotalPrice);
-  refs.rentalStartDate.addEventListener("change", onRentalDateRangeChange);
-  refs.rentalEndDate.addEventListener("change", onRentalDateRangeChange);
-  refs.form.addEventListener("submit", onFormSubmit);
-  refs.rentalForm.addEventListener("submit", onRentalFormSubmit);
-  refs.dialogClose.addEventListener("click", closeDialog);
+function bindNavigationEvents() {
   refs.mobileMenuToggle.addEventListener("click", openMobileMenu);
   refs.mobileMenuClose.addEventListener("click", closeMobileMenu);
-
-  const loadRentalsOnIntent = () => {
-    void ensureRentalsLoaded();
-  };
-
-  refs.rentalSearchInput.addEventListener("focus", loadRentalsOnIntent, { once: true });
-  refs.rentalTagFilter.addEventListener("focus", loadRentalsOnIntent, { once: true });
-  refs.rentalSelect.addEventListener("focus", loadRentalsOnIntent, { once: true });
-  refs.rentalForm.addEventListener("pointerdown", loadRentalsOnIntent, { once: true, passive: true });
 
   refs.mainNav.querySelectorAll("a").forEach((link) => {
     link.addEventListener("click", (event) => {
@@ -178,6 +153,38 @@ function bindEvents() {
   window.addEventListener("touchend", () => {
     queueHorizontalClamp();
   }, { passive: true });
+}
+
+function bindEvents() {
+  refs.searchInput.addEventListener("input", debounce(applyFilters, INPUT_DEBOUNCE_MS));
+  refs.tagFilter.addEventListener("change", applyFilters);
+  refs.rentalSearchInput.addEventListener("input", debounce(async () => {
+    if (await ensureRentalsLoaded()) {
+      applyRentalFilters();
+    }
+  }, INPUT_DEBOUNCE_MS));
+  refs.rentalTagFilter.addEventListener("change", async () => {
+    if (await ensureRentalsLoaded()) {
+      applyRentalFilters();
+    }
+  });
+  refs.excursionSelect.addEventListener("change", onSelectFromForm);
+  refs.rentalSelect.addEventListener("change", onRentalSelectFromForm);
+  refs.peopleInput.addEventListener("input", updateTotalPrice);
+  refs.rentalStartDate.addEventListener("change", onRentalDateRangeChange);
+  refs.rentalEndDate.addEventListener("change", onRentalDateRangeChange);
+  refs.form.addEventListener("submit", onFormSubmit);
+  refs.rentalForm.addEventListener("submit", onRentalFormSubmit);
+  refs.dialogClose.addEventListener("click", closeDialog);
+
+  const loadRentalsOnIntent = () => {
+    void ensureRentalsLoaded();
+  };
+
+  refs.rentalSearchInput.addEventListener("focus", loadRentalsOnIntent, { once: true });
+  refs.rentalTagFilter.addEventListener("focus", loadRentalsOnIntent, { once: true });
+  refs.rentalSelect.addEventListener("focus", loadRentalsOnIntent, { once: true });
+  refs.rentalForm.addEventListener("pointerdown", loadRentalsOnIntent, { once: true, passive: true });
 
   refs.detailsDialog.addEventListener("click", (event) => {
     const { target } = event;
@@ -1207,7 +1214,7 @@ async function ensureRentalsLoaded() {
 
   state.rentalLoadPromise = (async () => {
     try {
-      const rentalsData = await loadJsonData("data/rentals.json", "аренды");
+      const rentalsData = await loadJsonData(RENTALS_DATA_URL, "аренды");
       applyRentalsData(rentalsData);
       state.rentalsLoaded = true;
       return true;
