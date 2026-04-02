@@ -223,6 +223,14 @@ main {
   overflow: hidden;
 }
 
+.catalog,
+.request,
+.faq,
+.site-footer {
+  content-visibility: auto;
+  contain-intrinsic-size: 560px;
+}
+
 .kicker {
   display: inline-block;
   margin-bottom: 0.9rem;
@@ -405,6 +413,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   overflow: hidden;
   display: grid;
   min-height: 100%;
+  contain: content;
 }
 
 .tour-card-image {

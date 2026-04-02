@@ -15,6 +15,11 @@ const state = {
 const FALLBACK_IMAGE =
   "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80";
 
+const INPUT_DEBOUNCE_MS = 120;
+
+let priceFormatter = null;
+let horizontalClampQueued = false;
+
 const refs = {
   cardsGrid: document.querySelector("#cardsGrid"),
   cardTemplate: document.querySelector("#cardTemplate"),
@@ -79,11 +84,18 @@ async function initialize() {
   const excursionsData = await excursionsResponse.json();
   const rentalsData = await rentalsResponse.json();
 
-  state.excursions = excursionsData.excursions ?? [];
+  state.excursions = (excursionsData.excursions ?? []).map((item) => ({
+    ...item,
+    _searchIndex: buildExcursionSearchIndex(item)
+  }));
   state.filtered = [...state.excursions];
-  state.rentals = rentalsData.rentals ?? [];
+  state.rentals = (rentalsData.rentals ?? []).map((item) => ({
+    ...item,
+    _searchIndex: buildRentalSearchIndex(item)
+  }));
   state.filteredRentals = [...state.rentals];
   state.currency = excursionsData.agency?.currency ?? "USD";
+  priceFormatter = createPriceFormatter(state.currency);
   state.telegramUsername = normalizeTelegramUsername(excursionsData.telegram?.managerUsername);
   state.emailService = normalizeEmailServiceConfig(excursionsData.emailService);
 
@@ -102,9 +114,9 @@ async function initialize() {
 }
 
 function bindEvents() {
-  refs.searchInput.addEventListener("input", applyFilters);
+  refs.searchInput.addEventListener("input", debounce(applyFilters, INPUT_DEBOUNCE_MS));
   refs.tagFilter.addEventListener("change", applyFilters);
-  refs.rentalSearchInput.addEventListener("input", applyRentalFilters);
+  refs.rentalSearchInput.addEventListener("input", debounce(applyRentalFilters, INPUT_DEBOUNCE_MS));
   refs.rentalTagFilter.addEventListener("change", applyRentalFilters);
   refs.excursionSelect.addEventListener("change", onSelectFromForm);
   refs.rentalSelect.addEventListener("change", onRentalSelectFromForm);
@@ -150,13 +162,13 @@ function bindEvents() {
       closeMobileMenu();
     }
 
-    enforceHorizontalViewport();
+    queueHorizontalClamp();
   });
 
-  window.addEventListener("scroll", enforceHorizontalViewport, { passive: true });
+  window.addEventListener("scroll", queueHorizontalClamp, { passive: true });
 
   window.addEventListener("touchend", () => {
-    requestAnimationFrame(enforceHorizontalViewport);
+    queueHorizontalClamp();
   }, { passive: true });
 
   refs.detailsDialog.addEventListener("click", (event) => {
@@ -205,6 +217,18 @@ function enforceHorizontalViewport() {
   if (window.scrollX !== 0) {
     window.scrollTo(0, window.scrollY);
   }
+}
+
+function queueHorizontalClamp() {
+  if (horizontalClampQueued) {
+    return;
+  }
+
+  horizontalClampQueued = true;
+  requestAnimationFrame(() => {
+    horizontalClampQueued = false;
+    enforceHorizontalViewport();
+  });
 }
 
 function setupManagerLink() {
@@ -272,8 +296,7 @@ function applyFilters() {
 
   state.filtered = state.excursions.filter((item) => {
     const byTag = tag === "all" || (item.tags || []).includes(tag);
-    const searchSource = [item.title, item.overview, ...(item.tags || [])].join(" ").toLowerCase();
-    const byQuery = !query || searchSource.includes(query);
+    const byQuery = !query || item._searchIndex.includes(query);
     return byTag && byQuery;
   });
 
@@ -281,14 +304,13 @@ function applyFilters() {
 }
 
 function renderCards(items) {
-  refs.cardsGrid.innerHTML = "";
-
   if (!items.length) {
-    refs.cardsGrid.innerHTML = '<div class="empty-state">По вашему запросу экскурсии не найдены.</div>';
+    refs.cardsGrid.replaceChildren(createEmptyState("По вашему запросу экскурсии не найдены."));
     return;
   }
 
   const fragment = document.createDocumentFragment();
+  let index = 0;
 
   for (const item of items) {
     const node = refs.cardTemplate.content.cloneNode(true);
@@ -309,11 +331,12 @@ function renderCards(items) {
     detailsBtn.addEventListener("click", () => openDetails(item.id));
     selectBtn.addEventListener("click", () => selectExcursion(item.id, true));
 
-    card.style.animationDelay = `${Math.min(320, fragment.childNodes.length * 60)}ms`;
+    card.style.animationDelay = `${Math.min(320, index * 60)}ms`;
+    index += 1;
     fragment.append(node);
   }
 
-  refs.cardsGrid.append(fragment);
+  refs.cardsGrid.replaceChildren(fragment);
 }
 
 function applyRentalFilters() {
@@ -322,17 +345,7 @@ function applyRentalFilters() {
 
   state.filteredRentals = state.rentals.filter((item) => {
     const byCategory = category === "all" || item.category === category;
-    const searchSource = [
-      item.title,
-      item.overview,
-      item.description,
-      item.category,
-      String(getRentalPrice(item, "day")),
-      String(getRentalPrice(item, "week")),
-      String(getRentalPrice(item, "month")),
-      String(getRentalPrice(item, "year"))
-    ].join(" ").toLowerCase();
-    const byQuery = !query || searchSource.includes(query);
+    const byQuery = !query || item._searchIndex.includes(query);
     return byCategory && byQuery;
   });
 
@@ -340,14 +353,13 @@ function applyRentalFilters() {
 }
 
 function renderRentalCards(items) {
-  refs.rentalCardsGrid.innerHTML = "";
-
   if (!items.length) {
-    refs.rentalCardsGrid.innerHTML = '<div class="empty-state">По вашему запросу варианты аренды не найдены.</div>';
+    refs.rentalCardsGrid.replaceChildren(createEmptyState("По вашему запросу варианты аренды не найдены."));
     return;
   }
 
   const fragment = document.createDocumentFragment();
+  let index = 0;
 
   for (const item of items) {
     const node = refs.rentalCardTemplate.content.cloneNode(true);
@@ -369,11 +381,12 @@ function renderRentalCards(items) {
     detailsBtn.addEventListener("click", () => openRentalDetails(item.id));
     requestBtn.addEventListener("click", () => requestRental(item.id));
 
-    card.style.animationDelay = `${Math.min(320, fragment.childNodes.length * 60)}ms`;
+    card.style.animationDelay = `${Math.min(320, index * 60)}ms`;
+    index += 1;
     fragment.append(node);
   }
 
-  refs.rentalCardsGrid.append(fragment);
+  refs.rentalCardsGrid.replaceChildren(fragment);
 }
 
 function openRentalDetails(rentalId) {
@@ -1051,11 +1064,58 @@ function formatRentalPriceSummary(rental) {
 }
 
 function formatPrice(value) {
+  if (!priceFormatter) {
+    priceFormatter = createPriceFormatter(state.currency);
+  }
+
+  return priceFormatter.format(value);
+}
+
+function createPriceFormatter(currency) {
   return new Intl.NumberFormat("ru-RU", {
     style: "currency",
-    currency: state.currency,
+    currency,
     maximumFractionDigits: 0
-  }).format(value);
+  });
+}
+
+function buildExcursionSearchIndex(item) {
+  return [item.title, item.overview, ...(item.tags || [])]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+}
+
+function buildRentalSearchIndex(item) {
+  return [
+    item.title,
+    item.overview,
+    item.description,
+    item.category,
+    String(getRentalPrice(item, "day")),
+    String(getRentalPrice(item, "week")),
+    String(getRentalPrice(item, "month")),
+    String(getRentalPrice(item, "year"))
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+}
+
+function createEmptyState(text) {
+  const node = document.createElement("div");
+  node.className = "empty-state";
+  node.textContent = text;
+  return node;
+}
+
+function debounce(fn, wait) {
+  let timeoutId;
+
+  return (...args) => {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => fn(...args), wait);
+  };
 }
 
 function capitalize(value) {
