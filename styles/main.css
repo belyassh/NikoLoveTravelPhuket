@@ -697,6 +697,7 @@ textarea:focus {
   }
 
   .main-nav {
+    display: none;
     position: fixed;
     top: 0;
     right: 0;
@@ -707,14 +708,12 @@ textarea:focus {
     background: var(--surface);
     box-shadow: var(--shadow);
     z-index: 20;
-    display: grid;
     align-content: start;
     gap: 0.6rem;
-    transform: translateX(calc(100% + 2rem));
-    transition: transform 220ms ease;
-    visibility: hidden;
-    pointer-events: none;
-    will-change: transform;
+  }
+
+  .main-nav.is-open {
+    display: grid;
   }
 
   .main-nav a {
@@ -732,12 +731,6 @@ textarea:focus {
   .mobile-menu-toggle,
   .mobile-menu-close {
     display: grid;
-  }
-
-  body.mobile-menu-open .main-nav {
-    transform: translateX(0);
-    visibility: visible;
-    pointer-events: auto;
   }
 
   .catalog-controls,

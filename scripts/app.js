@@ -181,12 +181,14 @@ function bindEvents() {
 }
 
 function openMobileMenu() {
-  document.body.classList.add("mobile-menu-open");
+  refs.mainNav.classList.add("is-open");
+  document.body.style.overflow = "hidden";
   refs.mobileMenuToggle.setAttribute("aria-expanded", "true");
 }
 
 function closeMobileMenu() {
-  document.body.classList.remove("mobile-menu-open");
+  refs.mainNav.classList.remove("is-open");
+  document.body.style.overflow = "";
   refs.mobileMenuToggle.setAttribute("aria-expanded", "false");
 }
 
