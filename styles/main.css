@@ -338,6 +338,21 @@ textarea:focus {
   border-color: var(--brand);
 }
 
+/* iOS Safari can render date controls wider than container without explicit inline-size rules */
+input[type="date"] {
+  display: block;
+  width: 100%;
+  inline-size: 100%;
+  max-width: 100%;
+  max-inline-size: 100%;
+  min-width: 0;
+  min-inline-size: 0;
+}
+
+input[type="date"]::-webkit-date-and-time-value {
+  text-align: left;
+}
+
 .input-muted {
   color: var(--muted);
 }
