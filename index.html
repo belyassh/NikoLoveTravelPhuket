@@ -54,7 +54,33 @@
         "name": "Vibe Trip",
         "url": "https://phuketvibetrip.com/",
         "description": "Экскурсии и аренда транспорта у моря с онлайн-заявкой.",
+        "email": "hello@phuketvibetrip.com",
         "areaServed": "AE",
+        "contactPoint": {
+          "@type": "ContactPoint",
+          "contactType": "customer support",
+          "availableLanguage": ["ru"],
+          "email": "hello@phuketvibetrip.com"
+        },
+        "parentOrganization": {
+          "@type": "Organization",
+          "name": "Vibe Trip",
+          "url": "https://phuketvibetrip.com/"
+        },
+        "hasOfferCatalog": {
+          "@type": "OfferCatalog",
+          "name": "Услуги Vibe Trip",
+          "itemListElement": [
+            {
+              "@type": "OfferCatalog",
+              "name": "Экскурсии"
+            },
+            {
+              "@type": "OfferCatalog",
+              "name": "Аренда"
+            }
+          ]
+        },
         "sameAs": [
           "https://t.me/share/url"
         ]
@@ -362,8 +388,50 @@
     </main>
 
     <footer class="site-footer" id="contacts">
-      <p>Vibe Trip • Экскурсионные маршруты с заботой о деталях</p>
-      <a id="managerLink" href="#" target="_blank" rel="noreferrer">Связаться с менеджером</a>
+      <div class="footer-grid">
+        <section class="footer-block footer-brand" aria-label="О компании Vibe Trip">
+          <a class="brand footer-logo" href="#home" aria-label="На главную Vibe Trip">
+            <span class="brand-mark">VT</span>
+            <span class="brand-text">Vibe Trip</span>
+          </a>
+          <p class="footer-mission">Создаем маршруты и моменты, которые остаются с вами надолго.</p>
+          <p class="footer-hours">Поддержка: ежедневно 09:00-21:00</p>
+        </section>
+
+        <nav class="footer-block" aria-label="Навигация по разделам">
+          <h3>Разделы</h3>
+          <a href="#catalog">Экскурсии</a>
+          <a href="#rental">Аренда</a>
+          <a href="#faq">FAQ</a>
+          <a href="#request">Оставить заявку</a>
+        </nav>
+
+        <section class="footer-block" aria-label="Юридическая информация">
+          <h3>Документы</h3>
+          <a href="privacy.html">Политика конфиденциальности</a>
+          <a href="refund-policy.html">Условия возврата</a>
+          <p class="footer-legal">ИП: реквизиты предоставляются по запросу</p>
+        </section>
+
+        <section class="footer-block" aria-label="Контакты и соцсети">
+          <h3>Контакты</h3>
+          <a id="managerLink" href="#" target="_blank" rel="noreferrer">Связаться с менеджером</a>
+          <div class="footer-socials">
+            <a href="https://t.me/share/url" target="_blank" rel="noreferrer">Telegram</a>
+            <a href="https://instagram.com" target="_blank" rel="noreferrer">Instagram</a>
+            <a href="https://youtube.com" target="_blank" rel="noreferrer">YouTube</a>
+          </div>
+        </section>
+      </div>
+
+      <div class="footer-bottom">
+        <p>© 2026 Vibe Trip. Все права защищены.</p>
+        <div class="payment-methods" aria-label="Доступные способы оплаты">
+          <span>Visa</span>
+          <span>Mastercard</span>
+          <span>Mir</span>
+        </div>
+      </div>
     </footer>
 
     <dialog id="detailsDialog" class="details-dialog">

@@ -526,13 +526,89 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 }
 
 .site-footer {
-  border-top: 1px solid var(--line);
-  padding: 1.2rem 0 2rem;
-  color: var(--muted);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-lg);
+  padding: clamp(1.2rem, 3vw, 1.8rem);
+  color: rgba(241, 248, 250, 0.86);
+  background:
+    radial-gradient(circle at 0% 0%, rgba(26, 146, 127, 0.2), transparent 42%),
+    radial-gradient(circle at 100% 100%, rgba(255, 141, 64, 0.2), transparent 44%),
+    linear-gradient(150deg, #0b2028, #102f39 62%, #173744);
+  box-shadow: var(--shadow);
+  display: grid;
+  gap: 1.15rem;
+}
+
+.footer-grid {
+  display: grid;
+  grid-template-columns: 1.15fr repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.footer-block {
+  display: grid;
+  gap: 0.5rem;
+  align-content: start;
+}
+
+.footer-logo {
+  margin-right: 0;
+}
+
+.footer-mission,
+.footer-hours,
+.footer-legal {
+  color: rgba(225, 239, 245, 0.76);
+  line-height: 1.45;
+}
+
+.footer-block h3 {
+  font-size: 1rem;
+  color: #fff;
+}
+
+.footer-block a {
+  color: rgba(241, 248, 250, 0.88);
+  transition: color 200ms ease;
+}
+
+.footer-block a:hover {
+  color: #ffffff;
+}
+
+.footer-socials {
   display: flex;
-  justify-content: space-between;
   flex-wrap: wrap;
   gap: 0.6rem;
+}
+
+.footer-socials a,
+.payment-methods span {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 999px;
+  padding: 0.28rem 0.62rem;
+  font-size: 0.84rem;
+}
+
+.footer-bottom {
+  border-top: 1px solid rgba(255, 255, 255, 0.16);
+  padding-top: 0.9rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+}
+
+.footer-bottom p {
+  color: rgba(225, 239, 245, 0.68);
+}
+
+.payment-methods {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
 }
 
 .details-dialog {
@@ -833,6 +909,10 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     align-items: flex-start;
   }
 
+  .footer-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .catalog .section-head p {
     display: none;
   }
@@ -894,6 +974,14 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
   .status-actions .btn {
     width: 100%;
+  }
+
+  .footer-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .footer-bottom {
+    align-items: flex-start;
   }
 }
 
