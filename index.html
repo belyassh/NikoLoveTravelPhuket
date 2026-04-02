@@ -29,7 +29,21 @@
         <span class="brand-text">Vibe Trip</span>
       </a>
 
-      <nav class="main-nav" aria-label="Главная навигация">
+      <button
+        id="mobileMenuToggle"
+        class="mobile-menu-toggle"
+        type="button"
+        aria-label="Открыть меню"
+        aria-expanded="false"
+        aria-controls="mainNav"
+      >
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+
+      <nav class="main-nav" id="mainNav" aria-label="Главная навигация">
+        <button id="mobileMenuClose" class="mobile-menu-close" type="button" aria-label="Закрыть меню">×</button>
         <a href="#catalog">Экскурсии</a>
         <a href="#rental">Аренда</a>
         <a href="#request">Заявка</a>
@@ -40,6 +54,8 @@
 
       <a class="btn btn-ghost" href="#request">Оставить заявку</a>
     </header>
+
+    <button id="mobileMenuBackdrop" class="mobile-menu-backdrop" type="button" aria-label="Закрыть меню" tabindex="-1"></button>
 
     <main>
       <section class="hero" id="home">

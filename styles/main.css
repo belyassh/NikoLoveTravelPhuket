@@ -30,6 +30,7 @@ body {
     radial-gradient(circle at 95% 0%, rgba(255, 141, 64, 0.18), transparent 40%),
     var(--bg);
   min-height: 100vh;
+  overflow-x: hidden;
 }
 
 h1,
@@ -148,6 +149,58 @@ main,
 
 .main-nav a:hover {
   color: var(--text);
+}
+
+.mobile-menu-toggle,
+.mobile-menu-close,
+.mobile-menu-backdrop {
+  display: none;
+}
+
+.mobile-menu-toggle {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  padding: 0.55rem;
+  cursor: pointer;
+  grid-template-rows: repeat(3, 1fr);
+  gap: 0.22rem;
+}
+
+.mobile-menu-toggle span {
+  display: block;
+  height: 2px;
+  background: var(--text);
+  border-radius: 999px;
+}
+
+.mobile-menu-close {
+  width: 2.2rem;
+  height: 2.2rem;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  font-size: 1.3rem;
+  line-height: 1;
+  justify-self: end;
+  margin-bottom: 0.3rem;
+  cursor: pointer;
+}
+
+.mobile-menu-backdrop {
+  position: fixed;
+  inset: 0;
+  border: 0;
+  margin: 0;
+  padding: 0;
+  background: rgba(20, 32, 39, 0.38);
+  backdrop-filter: blur(2px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 180ms ease;
+  z-index: 15;
 }
 
 main {
@@ -643,8 +696,50 @@ textarea:focus {
 }
 
 @media (max-width: 900px) {
+  .site-header,
+  main,
+  .site-footer {
+    width: min(1120px, calc(100% - 1.25rem));
+  }
+
   .main-nav {
-    display: none;
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: min(320px, 86vw);
+    height: 100dvh;
+    padding: 1rem;
+    border-left: 1px solid var(--line);
+    background: var(--surface);
+    box-shadow: var(--shadow);
+    z-index: 20;
+    display: grid;
+    align-content: start;
+    gap: 0.6rem;
+    transform: translateX(105%);
+    transition: transform 220ms ease;
+  }
+
+  .main-nav a {
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    padding: 0.65rem 0.75rem;
+    background: #fff;
+  }
+
+  .mobile-menu-toggle,
+  .mobile-menu-close,
+  .mobile-menu-backdrop {
+    display: grid;
+  }
+
+  body.mobile-menu-open .main-nav {
+    transform: translateX(0);
+  }
+
+  body.mobile-menu-open .mobile-menu-backdrop {
+    opacity: 1;
+    pointer-events: auto;
   }
 
   .catalog-controls,
@@ -662,13 +757,73 @@ textarea:focus {
   .site-header {
     border-radius: var(--radius-md);
     top: 0.4rem;
+    padding: 0.65rem 0.75rem;
+  }
+
+  .mobile-menu-toggle {
+    width: 2.4rem;
+    height: 2.4rem;
   }
 
   .site-header .btn {
     display: none;
   }
 
+  .hero,
+  .catalog,
+  .request,
+  .faq {
+    padding: 1rem;
+  }
+
+  .hero h1 {
+    font-size: clamp(1.55rem, 9vw, 2rem);
+  }
+
+  .hero-copy {
+    font-size: 1.04rem;
+  }
+
+  .hero-actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
   .status-card {
     padding: 1rem;
+  }
+}
+
+@media (max-width: 390px) {
+  .site-header,
+  main,
+  .site-footer {
+    width: calc(100% - 0.8rem);
+  }
+
+  .brand {
+    gap: 0.5rem;
+  }
+
+  .brand-text {
+    font-size: 1.05rem;
+  }
+
+  .brand-mark {
+    width: 2rem;
+    height: 2rem;
+    font-size: 0.72rem;
+  }
+
+  .hero h1 {
+    font-size: clamp(1.42rem, 8.6vw, 1.8rem);
+  }
+
+  .hero-copy {
+    font-size: 0.98rem;
+  }
+
+  .main-nav {
+    width: min(300px, 88vw);
   }
 }

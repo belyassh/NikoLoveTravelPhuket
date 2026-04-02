@@ -39,6 +39,10 @@ const refs = {
   formNote: document.querySelector("#formNote"),
   rentalFormNote: document.querySelector("#rentalFormNote"),
   managerLink: document.querySelector("#managerLink"),
+  mainNav: document.querySelector("#mainNav"),
+  mobileMenuToggle: document.querySelector("#mobileMenuToggle"),
+  mobileMenuClose: document.querySelector("#mobileMenuClose"),
+  mobileMenuBackdrop: document.querySelector("#mobileMenuBackdrop"),
   detailsDialog: document.querySelector("#detailsDialog"),
   detailsContent: document.querySelector("#detailsContent"),
   dialogClose: document.querySelector("#dialogClose"),
@@ -110,6 +114,26 @@ function bindEvents() {
   refs.form.addEventListener("submit", onFormSubmit);
   refs.rentalForm.addEventListener("submit", onRentalFormSubmit);
   refs.dialogClose.addEventListener("click", closeDialog);
+  refs.mobileMenuToggle.addEventListener("click", openMobileMenu);
+  refs.mobileMenuClose.addEventListener("click", closeMobileMenu);
+  refs.mobileMenuBackdrop.addEventListener("click", closeMobileMenu);
+
+  refs.mainNav.querySelectorAll("a").forEach((link) => {
+    link.addEventListener("click", closeMobileMenu);
+  });
+
+  window.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      closeMobileMenu();
+    }
+  });
+
+  window.addEventListener("resize", () => {
+    if (window.innerWidth > 900) {
+      closeMobileMenu();
+    }
+  });
+
   refs.detailsDialog.addEventListener("click", (event) => {
     const { target } = event;
     if (target === refs.detailsDialog) {
@@ -138,6 +162,16 @@ function bindEvents() {
     closeStatusDialog();
     document.querySelector("#faq").scrollIntoView({ behavior: "smooth", block: "start" });
   });
+}
+
+function openMobileMenu() {
+  document.body.classList.add("mobile-menu-open");
+  refs.mobileMenuToggle.setAttribute("aria-expanded", "true");
+}
+
+function closeMobileMenu() {
+  document.body.classList.remove("mobile-menu-open");
+  refs.mobileMenuToggle.setAttribute("aria-expanded", "false");
 }
 
 function setupManagerLink() {
