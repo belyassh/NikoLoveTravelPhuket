@@ -19,7 +19,7 @@ const FALLBACK_IMAGE =
 
 const INPUT_DEBOUNCE_MS = 120;
 const DATA_CACHE_TTL_MS = 5 * 60 * 1000;
-const DATA_CACHE_PREFIX = "vibe-trip:data:";
+const DATA_CACHE_PREFIX = "niko-travel:data:";
 const EXCURSIONS_DATA_URL = new URL("../data/excursions.json", import.meta.url).href;
 const RENTALS_DATA_URL = new URL("../data/rentals.json", import.meta.url).href;
 
@@ -864,7 +864,7 @@ async function sendRequestViaEmailService(requestDetails, message) {
     payload.append("contact", requestDetails.contact);
     payload.append("email", requestDetails.email);
     payload.append("_replyto", requestDetails.email);
-    payload.append("source", "Vibe Trip website form");
+    payload.append("source", "Niko Travel website form");
     payload.append("submittedAt", new Date().toISOString());
     payload.append("message", message);
 
@@ -908,7 +908,7 @@ async function sendRentalRequestViaEmailService(requestDetails, message) {
     payload.append("contact", requestDetails.contact);
     payload.append("email", requestDetails.email);
     payload.append("_replyto", requestDetails.email);
-    payload.append("source", "Vibe Trip rental website form");
+    payload.append("source", "Niko Travel rental website form");
     payload.append("submittedAt", new Date().toISOString());
     payload.append("message", message);
 
