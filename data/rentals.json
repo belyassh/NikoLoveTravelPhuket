@@ -2,6 +2,8 @@
   "rentals": [
     {
       "id": "moto-scooter-150",
+      "slug": "moto-scooter-150-urban-ride",
+      "group": "auto-moto",
       "title": "Скутер 150cc Urban Ride",
       "overview": "Маневренный городской скутер для пляжей и коротких маршрутов.",
       "description": "Идеален для перемещения по курорту без пробок. Экономичный расход топлива, удобное сиденье и багажный бокс.",
@@ -26,6 +28,8 @@
     },
     {
       "id": "auto-suv-comfort",
+      "slug": "suv-comfort-5-seats",
+      "group": "auto-moto",
       "title": "SUV Comfort 5 мест",
       "overview": "Просторный автомобиль для семьи и выездов за город.",
       "description": "Комфортный кроссовер с кондиционером и большим багажником. Подходит для однодневных поездок по достопримечательностям.",
@@ -50,6 +54,8 @@
     },
     {
       "id": "yacht-catamaran-sunset",
+      "slug": "catamaran-sunset-cruise",
+      "group": "yachts-catamarans",
       "title": "Катамаран Sunset Cruise",
       "overview": "Полудневный чартер для компании до 10 гостей.",
       "description": "Приватный выход в море с купанием и закатом. Подходит для дней рождения, семейных прогулок и фотосессий.",
