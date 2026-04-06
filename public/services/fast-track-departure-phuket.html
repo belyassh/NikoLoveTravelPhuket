@@ -47,7 +47,18 @@
       }
       .seo-head { margin-bottom: 0.9rem; }
       .seo-head h1 { margin: 0 0 0.6rem; }
-      .seo-grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+      .seo-head p {
+        color: var(--muted);
+        max-width: 760px;
+        line-height: 1.5;
+      }
+      .seo-head-actions {
+        margin-top: 0.9rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.6rem;
+      }
+      .seo-grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
       .seo-card { border: 1px solid var(--line); border-radius: var(--radius-md); padding: 1rem; background: var(--surface); }
       .seo-card h2, .seo-card h3 { margin-top: 0; }
       .seo-list { margin: 0.7rem 0 0; padding-left: 1.1rem; }
@@ -55,11 +66,30 @@
       .seo-breadcrumbs a { color: var(--brand); }
       .seo-back { margin-top: 1rem; display: inline-block; }
       .muted { opacity: 0.85; }
+      .seo-hero-image {
+        border: 1px solid var(--line);
+        border-radius: var(--radius-md);
+        overflow: hidden;
+        margin-bottom: 1rem;
+        background: var(--surface);
+      }
+      .seo-hero-image img {
+        display: block;
+        width: 100%;
+        height: clamp(220px, 36vw, 420px);
+        object-fit: cover;
+      }
       .seo-header-links { display: flex; gap: 1rem; align-items: center; }
       .seo-header-links a { color: var(--muted); }
       .seo-header-links a:hover { color: var(--text); }
       @media (max-width: 900px) {
         .seo-header-links { display: none; }
+        .seo-page {
+          padding: 1.1rem;
+        }
+        .seo-head h1 {
+          font-size: clamp(1.8rem, 10vw, 3rem);
+        }
       }
     </style>
     <script type="application/ld+json">{"@context":"https://schema.org","@type":"Service","name":"Fast Track в аэропорту Пхукета (вылет)","description":"Быстрое прохождение контроля на вылете и приоритетное сопровождение.","provider":{"@type":"TravelAgency","name":"Niko Phuket","url":"https://nikophuket.com"},"areaServed":{"@type":"Place","name":"Phuket, Thailand"},"offers":{"@type":"Offer","price":49,"priceCurrency":"USD","url":"https://nikophuket.com/services/fast-track-departure-phuket.html"}}</script>

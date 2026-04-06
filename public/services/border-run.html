@@ -47,7 +47,18 @@
       }
       .seo-head { margin-bottom: 0.9rem; }
       .seo-head h1 { margin: 0 0 0.6rem; }
-      .seo-grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+      .seo-head p {
+        color: var(--muted);
+        max-width: 760px;
+        line-height: 1.5;
+      }
+      .seo-head-actions {
+        margin-top: 0.9rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.6rem;
+      }
+      .seo-grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
       .seo-card { border: 1px solid var(--line); border-radius: var(--radius-md); padding: 1rem; background: var(--surface); }
       .seo-card h2, .seo-card h3 { margin-top: 0; }
       .seo-list { margin: 0.7rem 0 0; padding-left: 1.1rem; }
@@ -55,14 +66,33 @@
       .seo-breadcrumbs a { color: var(--brand); }
       .seo-back { margin-top: 1rem; display: inline-block; }
       .muted { opacity: 0.85; }
+      .seo-hero-image {
+        border: 1px solid var(--line);
+        border-radius: var(--radius-md);
+        overflow: hidden;
+        margin-bottom: 1rem;
+        background: var(--surface);
+      }
+      .seo-hero-image img {
+        display: block;
+        width: 100%;
+        height: clamp(220px, 36vw, 420px);
+        object-fit: cover;
+      }
       .seo-header-links { display: flex; gap: 1rem; align-items: center; }
       .seo-header-links a { color: var(--muted); }
       .seo-header-links a:hover { color: var(--text); }
       @media (max-width: 900px) {
         .seo-header-links { display: none; }
+        .seo-page {
+          padding: 1.1rem;
+        }
+        .seo-head h1 {
+          font-size: clamp(1.8rem, 10vw, 3rem);
+        }
       }
     </style>
-    <script type="application/ld+json">{"@context":"https://schema.org","@type":"CollectionPage","name":"Border Run на Пхукете | Niko Phuket","description":"Услуги категории Border Run на Пхукете.","url":"https://nikophuket.com/services/border-run.html"}</script>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"CollectionPage","name":"Border Run на Пхукете","description":"Услуги категории Border Run на Пхукете.","url":"https://nikophuket.com/services/border-run.html"}</script>
   </head>
   <body>
     <div class="bg-shapes" aria-hidden="true">
@@ -90,21 +120,26 @@
         <nav class="seo-breadcrumbs" aria-label="Хлебные крошки">
       <a href="/index.html">Главная</a>
       <span>/</span>
-      <span>Border Run на Пхукете | Niko Phuket</span>
+      <span>Border Run на Пхукете</span>
     </nav>
     <section class="seo-head">
-      <h1>Border Run на Пхукете | Niko Phuket</h1>
+      <h1>Border Run на Пхукете</h1>
       <p>Услуги категории Border Run на Пхукете.</p>
     </section>
-    <section class="seo-grid">
-      <article class="seo-card">
-    <h3>Border Run на 1 день</h3>
-    <p>Организованный выезд для визового обновления с трансфером и поддержкой координатора.</p>
-    <p class="muted">Стоимость: 120 USD за человека</p>
-    <p class="seo-card-actions">
-      <a class="btn btn-ghost" href="/services/border-run-same-day.html">Подробнее</a>
-      <a class="btn btn-primary" href="/services/border-run-same-day.html#request">Запросить</a>
-    </p>
+    <section class="cards-grid">
+      <article class="tour-card">
+    <img class="tour-card-image" src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&amp;fit=crop&amp;w=1200&amp;q=80" alt="Border Run на 1 день" loading="lazy" decoding="async" />
+    <div class="tour-card-body">
+      <h3 class="tour-card-title">Border Run на 1 день</h3>
+      <p class="tour-card-overview">Организованный выезд для визового обновления с трансфером и поддержкой координатора.</p>
+      <div class="tour-card-foot">
+        <p class="tour-card-price">Стоимость: 120 USD за человека</p>
+        <div class="tour-card-actions">
+          <a class="btn btn-small btn-ghost" href="/services/border-run-same-day.html">Подробнее</a>
+          <a class="btn btn-small btn-primary" href="/services/border-run-same-day.html#request">Запросить</a>
+        </div>
+      </div>
+    </div>
   </article>
     </section>
         <p class="seo-back"><a href="/index.html">Вернуться на главную Niko Phuket</a></p>

@@ -47,7 +47,18 @@
       }
       .seo-head { margin-bottom: 0.9rem; }
       .seo-head h1 { margin: 0 0 0.6rem; }
-      .seo-grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+      .seo-head p {
+        color: var(--muted);
+        max-width: 760px;
+        line-height: 1.5;
+      }
+      .seo-head-actions {
+        margin-top: 0.9rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.6rem;
+      }
+      .seo-grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
       .seo-card { border: 1px solid var(--line); border-radius: var(--radius-md); padding: 1rem; background: var(--surface); }
       .seo-card h2, .seo-card h3 { margin-top: 0; }
       .seo-list { margin: 0.7rem 0 0; padding-left: 1.1rem; }
@@ -55,14 +66,33 @@
       .seo-breadcrumbs a { color: var(--brand); }
       .seo-back { margin-top: 1rem; display: inline-block; }
       .muted { opacity: 0.85; }
+      .seo-hero-image {
+        border: 1px solid var(--line);
+        border-radius: var(--radius-md);
+        overflow: hidden;
+        margin-bottom: 1rem;
+        background: var(--surface);
+      }
+      .seo-hero-image img {
+        display: block;
+        width: 100%;
+        height: clamp(220px, 36vw, 420px);
+        object-fit: cover;
+      }
       .seo-header-links { display: flex; gap: 1rem; align-items: center; }
       .seo-header-links a { color: var(--muted); }
       .seo-header-links a:hover { color: var(--text); }
       @media (max-width: 900px) {
         .seo-header-links { display: none; }
+        .seo-page {
+          padding: 1.1rem;
+        }
+        .seo-head h1 {
+          font-size: clamp(1.8rem, 10vw, 3rem);
+        }
       }
     </style>
-    <script type="application/ld+json">{"@context":"https://schema.org","@type":"CollectionPage","name":"Яхты и катамараны на Пхукете | Niko Phuket","description":"Страница категории аренды: Яхты и катамараны на Пхукете.","url":"https://nikophuket.com/rental/yachts-catamarans.html"}</script>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"CollectionPage","name":"Яхты и катамараны на Пхукете","description":"Страница категории аренды: Яхты и катамараны на Пхукете.","url":"https://nikophuket.com/rental/yachts-catamarans.html"}</script>
   </head>
   <body>
     <div class="bg-shapes" aria-hidden="true">
@@ -90,21 +120,26 @@
         <nav class="seo-breadcrumbs" aria-label="Хлебные крошки">
       <a href="/index.html">Главная</a>
       <span>/</span>
-      <span>Яхты и катамараны на Пхукете | Niko Phuket</span>
+      <span>Яхты и катамараны на Пхукете</span>
     </nav>
     <section class="seo-head">
-      <h1>Яхты и катамараны на Пхукете | Niko Phuket</h1>
+      <h1>Яхты и катамараны на Пхукете</h1>
       <p>Страница категории аренды: Яхты и катамараны на Пхукете.</p>
     </section>
-    <section class="seo-grid">
-      <article class="seo-card">
-    <h3>Катамаран Sunset Cruise</h3>
-    <p>Полудневный чартер для компании до 10 гостей.</p>
-    <p class="muted">Стоимость: 420 USD в день</p>
-    <p class="seo-card-actions">
-      <a class="btn btn-ghost" href="/rental/catamaran-sunset-cruise.html">Подробнее</a>
-      <a class="btn btn-primary" href="/rental/catamaran-sunset-cruise.html#request">Запросить</a>
-    </p>
+    <section class="cards-grid">
+      <article class="tour-card">
+    <img class="tour-card-image" src="https://images.unsplash.com/photo-1569263979104-865ab7cd8d13?auto=format&amp;fit=crop&amp;w=1200&amp;q=80" alt="Катамаран Sunset Cruise" loading="lazy" decoding="async" />
+    <div class="tour-card-body">
+      <h3 class="tour-card-title">Катамаран Sunset Cruise</h3>
+      <p class="tour-card-overview">Полудневный чартер для компании до 10 гостей.</p>
+      <div class="tour-card-foot">
+        <p class="tour-card-price">Стоимость: 420 USD в день</p>
+        <div class="tour-card-actions">
+          <a class="btn btn-small btn-ghost" href="/rental/catamaran-sunset-cruise.html">Подробнее</a>
+          <a class="btn btn-small btn-primary" href="/rental/catamaran-sunset-cruise.html#request">Запросить</a>
+        </div>
+      </div>
+    </div>
   </article>
     </section>
         <p class="seo-back"><a href="/index.html">Вернуться на главную Niko Phuket</a></p>

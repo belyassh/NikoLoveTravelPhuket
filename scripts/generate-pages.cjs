@@ -8,6 +8,7 @@ const STYLES_SRC = path.join(ROOT, "styles", "main.css");
 const IMAGE_SRC = path.join(ROOT, "image.png");
 const FAVICON_SRC = path.join(ROOT, "niko_phuket_favicon.ico");
 const SITE_URL = "https://nikophuket.com";
+const FALLBACK_CARD_IMAGE = "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80";
 
 const CATEGORY_LABELS = {
   sea: "Морские экскурсии",
@@ -64,6 +65,14 @@ function asPrice(value, unit, currency) {
   return `${value} ${currency}${unit ? ` ${unit}` : ""}`;
 }
 
+function getFirstImage(item) {
+  const images = Array.isArray(item?.images)
+    ? item.images.filter((url) => typeof url === "string" && url.trim())
+    : [];
+
+  return images[0] || FALLBACK_CARD_IMAGE;
+}
+
 function pageTemplate({ title, description, canonicalPath, body, jsonLd }) {
   const canonical = `${SITE_URL}${canonicalPath}`;
   const ogImage = `${SITE_URL}/image.png`;
@@ -117,7 +126,18 @@ function pageTemplate({ title, description, canonicalPath, body, jsonLd }) {
       }
       .seo-head { margin-bottom: 0.9rem; }
       .seo-head h1 { margin: 0 0 0.6rem; }
-      .seo-grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+      .seo-head p {
+        color: var(--muted);
+        max-width: 760px;
+        line-height: 1.5;
+      }
+      .seo-head-actions {
+        margin-top: 0.9rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.6rem;
+      }
+      .seo-grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
       .seo-card { border: 1px solid var(--line); border-radius: var(--radius-md); padding: 1rem; background: var(--surface); }
       .seo-card h2, .seo-card h3 { margin-top: 0; }
       .seo-list { margin: 0.7rem 0 0; padding-left: 1.1rem; }
@@ -125,11 +145,30 @@ function pageTemplate({ title, description, canonicalPath, body, jsonLd }) {
       .seo-breadcrumbs a { color: var(--brand); }
       .seo-back { margin-top: 1rem; display: inline-block; }
       .muted { opacity: 0.85; }
+      .seo-hero-image {
+        border: 1px solid var(--line);
+        border-radius: var(--radius-md);
+        overflow: hidden;
+        margin-bottom: 1rem;
+        background: var(--surface);
+      }
+      .seo-hero-image img {
+        display: block;
+        width: 100%;
+        height: clamp(220px, 36vw, 420px);
+        object-fit: cover;
+      }
       .seo-header-links { display: flex; gap: 1rem; align-items: center; }
       .seo-header-links a { color: var(--muted); }
       .seo-header-links a:hover { color: var(--text); }
       @media (max-width: 900px) {
         .seo-header-links { display: none; }
+        .seo-page {
+          padding: 1.1rem;
+        }
+        .seo-head h1 {
+          font-size: clamp(1.8rem, 10vw, 3rem);
+        }
       }
     </style>
     <script type="application/ld+json">${JSON.stringify(jsonLd)}</script>
@@ -199,14 +238,21 @@ function normalizeServices(raw, currency) {
 }
 
 function cardMarkup(item, urlPath) {
-  return `<article class="seo-card">
-    <h3>${escapeHtml(item.title)}</h3>
-    <p>${escapeHtml(item.overview || item.description || "")}</p>
-    <p class="muted">Стоимость: ${escapeHtml(item.priceLabel)}</p>
-    <p class="seo-card-actions">
-      <a class="btn btn-ghost" href="${urlPath}">Подробнее</a>
-      <a class="btn btn-primary" href="${urlPath}#request">Запросить</a>
-    </p>
+  const imageUrl = getFirstImage(item);
+
+  return `<article class="tour-card">
+    <img class="tour-card-image" src="${escapeHtml(imageUrl)}" alt="${escapeHtml(item.title)}" loading="lazy" decoding="async" />
+    <div class="tour-card-body">
+      <h3 class="tour-card-title">${escapeHtml(item.title)}</h3>
+      <p class="tour-card-overview">${escapeHtml(item.overview || item.description || "")}</p>
+      <div class="tour-card-foot">
+        <p class="tour-card-price">Стоимость: ${escapeHtml(item.priceLabel)}</p>
+        <div class="tour-card-actions">
+          <a class="btn btn-small btn-ghost" href="${urlPath}">Подробнее</a>
+          <a class="btn btn-small btn-primary" href="${urlPath}#request">Запросить</a>
+        </div>
+      </div>
+    </div>
   </article>`;
 }
 
@@ -268,7 +314,9 @@ function excursionDetailPage(item, endpoint) {
   const title = `${item.title} | Экскурсия на Пхукете | Niko Phuket`;
   const description = item.overview || item.description || `Экскурсия ${item.title} на Пхукете`;
 
-  const body = `<nav class="seo-breadcrumbs" aria-label="Хлебные крошки">
+  const heroImage = getFirstImage(item);
+  const body = `<div class="seo-hero-image"><img src="${escapeHtml(heroImage)}" alt="${escapeHtml(item.title)}" loading="eager" decoding="async" /></div>
+    <nav class="seo-breadcrumbs" aria-label="Хлебные крошки">
       <a href="/index.html">Главная</a>
       <span>/</span>
       <a href="/excursions/${item.category}.html">${CATEGORY_LABELS[item.category] || "Экскурсии"}</a>
@@ -320,7 +368,9 @@ function rentalDetailPage(item, endpoint) {
   const description = item.overview || item.description || `Аренда ${item.title} на Пхукете`;
 
   const prices = item.prices || {};
-  const body = `<nav class="seo-breadcrumbs" aria-label="Хлебные крошки">
+  const heroImage = getFirstImage(item);
+  const body = `<div class="seo-hero-image"><img src="${escapeHtml(heroImage)}" alt="${escapeHtml(item.title)}" loading="eager" decoding="async" /></div>
+    <nav class="seo-breadcrumbs" aria-label="Хлебные крошки">
       <a href="/index.html">Главная</a>
       <span>/</span>
       <a href="/rental/index.html">Аренда</a>
@@ -415,30 +465,30 @@ function serviceDetailPage(item) {
   return { path: urlPath, html: pageTemplate({ title, description, canonicalPath: urlPath, body, jsonLd }) };
 }
 
-function categoryPage({ sectionPath, slug, title, description, items, itemPathBuilder }) {
+function categoryPage({ sectionPath, slug, seoTitle, heading, description, items, itemPathBuilder }) {
   const urlPath = `/${sectionPath}/${slug}.html`;
   const body = `<nav class="seo-breadcrumbs" aria-label="Хлебные крошки">
       <a href="/index.html">Главная</a>
       <span>/</span>
-      <span>${escapeHtml(title)}</span>
+      <span>${escapeHtml(heading)}</span>
     </nav>
     <section class="seo-head">
-      <h1>${escapeHtml(title)}</h1>
+      <h1>${escapeHtml(heading)}</h1>
       <p>${escapeHtml(description)}</p>
     </section>
-    <section class="seo-grid">
+    <section class="cards-grid">
       ${items.map((item) => cardMarkup(item, itemPathBuilder(item))).join("\n")}
     </section>`;
 
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "CollectionPage",
-    name: title,
+    name: heading,
     description,
     url: `${SITE_URL}${urlPath}`
   };
 
-  return { path: urlPath, html: pageTemplate({ title, description, canonicalPath: urlPath, body, jsonLd }) };
+  return { path: urlPath, html: pageTemplate({ title: seoTitle, description, canonicalPath: urlPath, body, jsonLd }) };
 }
 
 function excursionsIndexPage(excursionsByCategory) {
@@ -466,7 +516,7 @@ function excursionsIndexPage(excursionsByCategory) {
     <section class="seo-head">
       <h1>Все экскурсии на Пхукете</h1>
       <p>Полный каталог без ограничений по количеству: морские и наземные экскурсии отдельными витринами.</p>
-      <p><a class="btn btn-ghost" href="/rental/index.html">Перейти в раздел аренды</a></p>
+      <div class="seo-head-actions"><a class="btn btn-ghost" href="/rental/index.html">Перейти в раздел аренды</a></div>
     </section>
     ${section("Морские экскурсии", sea)}
     ${section("Наземные экскурсии", land)}`;
@@ -598,12 +648,14 @@ function main() {
   }, {});
 
   Object.entries(excursionsByCategory).forEach(([category, items]) => {
-    const title = `${CATEGORY_LABELS[category] || "Экскурсии"} на Пхукете | Niko Phuket`;
+    const heading = `${CATEGORY_LABELS[category] || "Экскурсии"} на Пхукете`;
+    const seoTitle = `${heading} | Niko Phuket`;
     const description = `Подборка категории: ${CATEGORY_LABELS[category] || "экскурсии"} на Пхукете с ценами и деталями.`;
     const page = categoryPage({
       sectionPath: "excursions",
       slug: category,
-      title,
+      seoTitle,
+      heading,
       description,
       items,
       itemPathBuilder: (item) => `/excursions/${item.slug}.html`
@@ -634,12 +686,14 @@ function main() {
   generated.push(rentalIndex.path);
 
   Object.entries(rentalsByGroup).forEach(([group, items]) => {
-    const title = `${CATEGORY_LABELS[group] || "Аренда"} на Пхукете | Niko Phuket`;
+    const heading = `${CATEGORY_LABELS[group] || "Аренда"} на Пхукете`;
+    const seoTitle = `${heading} | Niko Phuket`;
     const description = `Страница категории аренды: ${CATEGORY_LABELS[group] || "аренда"} на Пхукете.`;
     const page = categoryPage({
       sectionPath: "rental",
       slug: group,
-      title,
+      seoTitle,
+      heading,
       description,
       items,
       itemPathBuilder: (item) => `/rental/${item.slug}.html`
@@ -672,12 +726,14 @@ function main() {
   generated.push(servicesIndex.path);
 
   Object.entries(servicesByCategory).forEach(([category, items]) => {
-    const title = `${CATEGORY_LABELS[category] || "Услуги"} на Пхукете | Niko Phuket`;
+    const heading = `${CATEGORY_LABELS[category] || "Услуги"} на Пхукете`;
+    const seoTitle = `${heading} | Niko Phuket`;
     const description = `Услуги категории ${CATEGORY_LABELS[category] || category} на Пхукете.`;
     const page = categoryPage({
       sectionPath: "services",
       slug: category,
-      title,
+      seoTitle,
+      heading,
       description,
       items,
       itemPathBuilder: (item) => `/services/${item.slug}.html`
