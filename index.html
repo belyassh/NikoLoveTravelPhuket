@@ -3,10 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Niko Phuket | Экскурсии у моря</title>
+    <title>Niko Phuket | Экскурсии на Пхукете и морские туры</title>
     <meta
       name="description"
-      content="Интерактивная витрина экскурсий: выбирайте тур, смотрите фото, считайте стоимость и отправляйте заявку прямо из формы."
+      content="Экскурсии на Пхукете: Пхи-Пхи, Симиланы, Джеймс Бонд, обзорные туры и аренда транспорта. Выбирайте маршрут, считайте стоимость и бронируйте онлайн."
+    />
+    <meta
+      name="keywords"
+      content="экскурсии на Пхукете, туры Пхукет, морские экскурсии Пхукет, Пхи-Пхи, Симиланские острова, Джеймс Бонд, аренда транспорта Пхукет"
     />
     <meta name="robots" content="index, follow" />
     <meta name="theme-color" content="#0c7a6d" />
@@ -14,14 +18,15 @@
 
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Niko Phuket" />
-    <meta property="og:title" content="Niko Phuket | Экскурсии у моря" />
-    <meta property="og:description" content="Выбирайте экскурсии и аренду, считайте стоимость и отправляйте заявку менеджеру за пару шагов." />
+    <meta property="og:title" content="Niko Phuket | Экскурсии на Пхукете и морские туры" />
+    <meta property="og:description" content="Подбор экскурсий на Пхукете: острова, морские туры, обзорные маршруты и аренда транспорта с онлайн-заявкой." />
     <meta property="og:url" content="https://nikophuket.com/" />
     <meta property="og:image" content="https://nikophuket.com/image.png" />
+    <meta property="og:locale" content="ru_RU" />
 
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Niko Phuket | Экскурсии у моря" />
-    <meta name="twitter:description" content="Интерактивная витрина экскурсий и аренды с быстрым расчетом стоимости." />
+    <meta name="twitter:title" content="Niko Phuket | Экскурсии на Пхукете" />
+    <meta name="twitter:description" content="Экскурсии и туры на Пхукете: море, острова, обзорные маршруты и аренда транспорта." />
     <meta name="twitter:image" content="https://nikophuket.com/image.png" />
 
     <link rel="icon" href="niko_phuket_favicon.ico" sizes="any" />
@@ -53,9 +58,17 @@
         "@type": "TravelAgency",
         "name": "Niko Phuket",
         "url": "https://nikophuket.com/",
-        "description": "Экскурсии и аренда транспорта у моря с онлайн-заявкой.",
+        "description": "Локальное туристическое агентство на Пхукете: морские экскурсии, островные туры, обзорные маршруты и аренда транспорта с онлайн-заявкой.",
         "email": "hello@nikophuket.com",
-        "areaServed": "AE",
+        "areaServed": {
+          "@type": "Place",
+          "name": "Phuket, Thailand"
+        },
+        "address": {
+          "@type": "PostalAddress",
+          "addressLocality": "Phuket",
+          "addressCountry": "TH"
+        },
         "contactPoint": {
           "@type": "ContactPoint",
           "contactType": "customer support",
@@ -73,7 +86,7 @@
           "itemListElement": [
             {
               "@type": "OfferCatalog",
-              "name": "Экскурсии"
+              "name": "Экскурсии на Пхукете"
             },
             {
               "@type": "OfferCatalog",
@@ -83,6 +96,47 @@
         },
         "sameAs": [
           "https://t.me/share/url"
+        ]
+      }
+    </script>
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "Как быстро вы подтверждаете заявку?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Обычно в течение 5-15 минут в рабочее время. В высокий сезон ответ может занять до 30 минут."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Можно ли изменить дату после оформления?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Да, в большинстве случаев можно перенести экскурсию. Напишите менеджеру как можно раньше, чтобы мы закрепили новый слот."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Как понять, что заявка принята?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "После успешной отправки вы увидите подтверждение на сайте. Затем менеджер свяжется с вами по указанному контакту."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Что делать, если форма не отправилась?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Сайт автоматически предложит резервный канал через Telegram, чтобы вы не потеряли заявку."
+            }
+          }
         ]
       }
     </script>
@@ -116,6 +170,7 @@
       <nav class="main-nav" id="mainNav" aria-label="Главная навигация">
         <button id="mobileMenuClose" class="mobile-menu-close" type="button" aria-label="Закрыть меню">×</button>
         <a href="#catalog">Экскурсии</a>
+        <a href="#destinations">Направления</a>
         <a href="#rental">Аренда</a>
         <a href="#request">Заявка</a>
         <a href="#rental-request">Заявка на аренду</a>
@@ -130,10 +185,10 @@
 
     <main>
       <section class="hero" id="home">
-        <p class="kicker">Экскурсионное агентство</p>
-        <h1>Путешествия, которые хочется сохранить в галерее и в памяти</h1>
+        <p class="kicker">Туристическое агентство на Пхукете</p>
+        <h1>Экскурсии на Пхукете: море, острова и яркие маршруты каждый день</h1>
         <p class="hero-copy">
-          Выберите экскурсию, изучите детали в интерактивной карточке, рассчитайте итоговую стоимость и отправьте заявку менеджеру в Telegram за пару шагов.
+          Подбирайте туры по Пхукету: Пхи-Пхи, Симиланские острова, залив Джеймса Бонда, обзорные и семейные программы. Смотрите детали, считайте стоимость и отправляйте заявку за пару шагов.
         </p>
         <div class="hero-actions">
           <a class="btn btn-primary" href="#catalog">Смотреть экскурсии</a>
@@ -144,8 +199,8 @@
 
       <section class="catalog" id="catalog">
         <div class="section-head">
-          <h2>Интерактивные витрины экскурсий</h2>
-          <p>Добавляйте, редактируйте и удаляйте экскурсии только в JSON.</p>
+          <h2>Экскурсии и туры по Пхукету</h2>
+          <p>Выбирайте морские, обзорные и культурные маршруты с удобным онлайн-бронированием.</p>
         </div>
 
         <div class="catalog-controls">
@@ -163,6 +218,35 @@
         </div>
 
         <div id="cardsGrid" class="cards-grid" aria-live="polite"></div>
+      </section>
+
+      <section class="faq" id="destinations">
+        <div class="section-head">
+          <h2>Популярные направления отдыха на Пхукете</h2>
+          <p>Собрали самые востребованные форматы туризма, которые чаще всего выбирают гости острова.</p>
+        </div>
+
+        <div class="faq-list">
+          <details class="faq-item" open>
+            <summary>Морские экскурсии и островные туры</summary>
+            <p>Однодневные поездки на Пхи-Пхи, Симиланы и в залив Пханг Нга: снорклинг, пляжи, фототочки и комфортные трансферы.</p>
+          </details>
+
+          <details class="faq-item">
+            <summary>Обзорные экскурсии по Пхукету</summary>
+            <p>Маршруты по смотровым площадкам, храмам и старому городу Пхукет-Таун с русскоязычным сопровождением.</p>
+          </details>
+
+          <details class="faq-item">
+            <summary>Семейный и спокойный туризм</summary>
+            <p>Программы с мягким темпом, удобной логистикой и безопасными локациями для отдыха с детьми.</p>
+          </details>
+
+          <details class="faq-item">
+            <summary>Аренда транспорта для самостоятельных поездок</summary>
+            <p>Скутеры, авто и водный транспорт для гибкого планирования отдыха на острове и соседних направлениях.</p>
+          </details>
+        </div>
       </section>
 
       <section class="catalog" id="rental">
@@ -401,6 +485,7 @@
         <nav class="footer-block" aria-label="Навигация по разделам">
           <h3>Разделы</h3>
           <a href="#catalog">Экскурсии</a>
+          <a href="#destinations">Направления</a>
           <a href="#rental">Аренда</a>
           <a href="#faq">FAQ</a>
           <a href="#request">Оставить заявку</a>
