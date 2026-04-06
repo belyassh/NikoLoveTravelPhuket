@@ -3,6 +3,7 @@ const state = {
   filtered: [],
   rentals: [],
   filteredRentals: [],
+  services: [],
   rentalsLoaded: false,
   rentalLoadPromise: null,
   telegramUsername: "",
@@ -20,6 +21,7 @@ const DATA_CACHE_TTL_MS = 5 * 60 * 1000;
 const DATA_CACHE_PREFIX = "niko-travel:data:";
 const EXCURSIONS_DATA_URL = new URL("../data/excursions.json", import.meta.url).href;
 const RENTALS_DATA_URL = new URL("../data/rentals.json", import.meta.url).href;
+const SERVICES_DATA_URL = new URL("../data/services.json", import.meta.url).href;
 
 let priceFormatter = null;
 let horizontalClampQueued = false;
@@ -31,6 +33,8 @@ const refs = {
   rentalRequestSection: document.querySelector("#rental-request"),
   rentalCardsGrid: document.querySelector("#rentalCardsGrid"),
   rentalCardTemplate: document.querySelector("#rentalCardTemplate"),
+  servicesCardsGrid: document.querySelector("#servicesCardsGrid"),
+  serviceCardTemplate: document.querySelector("#serviceCardTemplate"),
   searchInput: document.querySelector("#searchInput"),
   tagFilter: document.querySelector("#tagFilter"),
   rentalSearchInput: document.querySelector("#rentalSearchInput"),
@@ -62,6 +66,7 @@ bindNavigationEvents();
 initialize().catch((error) => {
   refs.cardsGrid.innerHTML = '<div class="empty-state">Не удалось загрузить данные экскурсий.</div>';
   refs.rentalCardsGrid.innerHTML = '<div class="empty-state">Не удалось загрузить данные аренды.</div>';
+  refs.servicesCardsGrid.innerHTML = '<div class="empty-state">Не удалось загрузить данные услуг.</div>';
   refs.formNote.textContent = "Ошибка загрузки. Проверьте файлы data/excursions.json и data/rentals.json";
   refs.rentalFormNote.textContent = "Ошибка загрузки. Проверьте файлы data/excursions.json и data/rentals.json";
   console.error(error);
@@ -82,6 +87,7 @@ async function initialize() {
 
   setupManagerLink();
   renderCards(getTopExcursions(state.excursions));
+  await loadAndRenderServices();
   setupDeferredRentalState();
   bindEvents();
   setupRentalLazyLoading();
@@ -356,128 +362,44 @@ function renderRentalCards(items) {
   refs.rentalCardsGrid.replaceChildren(fragment);
 }
 
-function openRentalDetails(rentalId) {
-  const rental = getRentalById(rentalId);
-  if (!rental) {
+function renderServiceCards(items) {
+  if (!items.length) {
+    refs.servicesCardsGrid.replaceChildren(createEmptyState("Список услуг скоро появится."));
     return;
   }
 
-  const images = getRentalImages(rental);
-  let slideIndex = 0;
+  const fragment = document.createDocumentFragment();
+  let index = 0;
 
-  refs.detailsContent.innerHTML = `
-    <div class="details-layout">
-      <div class="slider">
-        <img src="${images[0]}" alt="${rental.title}" data-slider-image />
-        <button class="slider-control slider-prev" type="button" aria-label="Предыдущее фото">‹</button>
-        <button class="slider-control slider-next" type="button" aria-label="Следующее фото">›</button>
-      </div>
-      <div class="details-body">
-        <h3>${rental.title}</h3>
-        <p class="details-meta">${rental.overview}</p>
-        <p class="details-meta">${rental.description}</p>
-        <p><strong>Категория:</strong> ${formatRentalCategory(rental.category)}</p>
-        <p><strong>Стоимость:</strong> ${formatRentalPriceSummary(rental)}</p>
-        <p><strong>Депозит:</strong> ${rental.deposit || "Уточняется"}</p>
-        <p><strong>Коробка / режим:</strong> ${rental.transmission || "Уточняется"}</p>
-        <div class="details-lists">
-          <div>
-            <strong>Что включено</strong>
-            <ul>${(rental.included || []).map((point) => `<li>${point}</li>`).join("")}</ul>
-          </div>
-        </div>
-        <button class="btn btn-primary" type="button" data-action="request-rental">Запросить аренду</button>
-      </div>
-    </div>
-  `;
+  for (const item of items) {
+    const node = refs.serviceCardTemplate.content.cloneNode(true);
+    const card = node.querySelector(".service-card");
+    const image = node.querySelector(".tour-card-image");
 
-  const sliderImage = refs.detailsContent.querySelector("[data-slider-image]");
-  const prevButton = refs.detailsContent.querySelector(".slider-prev");
-  const nextButton = refs.detailsContent.querySelector(".slider-next");
-  const requestButton = refs.detailsContent.querySelector('[data-action="request-rental"]');
+    image.src = getServiceImage(item);
+    image.alt = item.title;
 
-  const updateSlide = (step) => {
-    const length = images.length;
-    slideIndex = (slideIndex + step + length) % length;
-    sliderImage.src = images[slideIndex];
-  };
+    node.querySelector(".tour-card-title").textContent = item.title;
+    node.querySelector(".tour-card-overview").textContent = item.overview || item.description || "";
+    node.querySelector(".rental-card-meta").textContent = formatServiceCategory(item.category);
+    node.querySelector(".tour-card-price").textContent = `От ${formatPrice(item.priceFrom || 0)}${item.unit ? ` ${item.unit}` : ""}`;
 
-  if (images.length <= 1) {
-    prevButton.hidden = true;
-    nextButton.hidden = true;
+    const detailsBtn = node.querySelector('[data-action="details"]');
+    const requestBtn = node.querySelector('[data-action="request"]');
+
+    detailsBtn.addEventListener("click", () => {
+      window.location.href = buildServicePagePath(item);
+    });
+    requestBtn.addEventListener("click", () => {
+      window.location.href = `${buildServicePagePath(item)}#request`;
+    });
+
+    card.style.animationDelay = `${Math.min(320, index * 60)}ms`;
+    index += 1;
+    fragment.append(node);
   }
 
-  prevButton.addEventListener("click", () => updateSlide(-1));
-  nextButton.addEventListener("click", () => updateSlide(1));
-  requestButton.addEventListener("click", () => {
-    requestRental(rental.id);
-    closeDialog();
-  });
-
-  refs.detailsDialog.showModal();
-}
-
-function openDetails(excursionId) {
-  const excursion = getExcursionById(excursionId);
-  if (!excursion) {
-    return;
-  }
-
-  const images = getExcursionImages(excursion);
-  let slideIndex = 0;
-
-  refs.detailsContent.innerHTML = `
-    <div class="details-layout">
-      <div class="slider">
-        <img src="${images[0]}" alt="${excursion.title}" data-slider-image />
-        <button class="slider-control slider-prev" type="button" aria-label="Предыдущее фото">‹</button>
-        <button class="slider-control slider-next" type="button" aria-label="Следующее фото">›</button>
-      </div>
-      <div class="details-body">
-        <h3>${excursion.title}</h3>
-        <p class="details-meta">${excursion.overview}</p>
-        <p class="details-meta">${excursion.description}</p>
-        <p><strong>Стоимость:</strong> ${formatPrice(excursion.price)} / чел.</p>
-        <p>${(excursion.tags || []).map((tag) => `<span class="details-chip">${capitalize(tag)}</span>`).join("")}</p>
-        <div class="details-lists">
-          <div>
-            <strong>Что включено</strong>
-            <ul>${(excursion.included || []).map((point) => `<li>${point}</li>`).join("")}</ul>
-          </div>
-          <div>
-            <strong>Что взять с собой</strong>
-            <ul>${(excursion.bring || []).map((point) => `<li>${point}</li>`).join("")}</ul>
-          </div>
-        </div>
-        <button class="btn btn-primary" type="button" data-action="choose-from-dialog">Выбрать экскурсию</button>
-      </div>
-    </div>
-  `;
-
-  const sliderImage = refs.detailsContent.querySelector("[data-slider-image]");
-  const prevButton = refs.detailsContent.querySelector(".slider-prev");
-  const nextButton = refs.detailsContent.querySelector(".slider-next");
-  const chooseButton = refs.detailsContent.querySelector('[data-action="choose-from-dialog"]');
-
-  const updateSlide = (step) => {
-    const length = images.length;
-    slideIndex = (slideIndex + step + length) % length;
-    sliderImage.src = images[slideIndex];
-  };
-
-  if (images.length <= 1) {
-    prevButton.hidden = true;
-    nextButton.hidden = true;
-  }
-
-  prevButton.addEventListener("click", () => updateSlide(-1));
-  nextButton.addEventListener("click", () => updateSlide(1));
-  chooseButton.addEventListener("click", () => {
-    selectExcursion(excursion.id, true);
-    closeDialog();
-  });
-
-  refs.detailsDialog.showModal();
+  refs.servicesCardsGrid.replaceChildren(fragment);
 }
 
 function closeDialog() {
@@ -822,6 +744,11 @@ function getRentalById(rentalId) {
   return state.rentals.find((item) => item.id === rentalId);
 }
 
+function buildServicePagePath(service) {
+  const slug = service?.slug || service?.id;
+  return `/services/${slug}.html`;
+}
+
 function buildExcursionPagePath(excursion) {
   const slug = excursion?.slug || excursion?.id;
   return `/excursions/${slug}.html`;
@@ -891,6 +818,14 @@ function getRentalImages(rental) {
     : [];
 
   return images.length ? images : [FALLBACK_IMAGE];
+}
+
+function getServiceImage(service) {
+  const images = Array.isArray(service?.images)
+    ? service.images.filter((url) => typeof url === "string" && url.trim())
+    : [];
+
+  return images[0] || FALLBACK_IMAGE;
 }
 
 function getRentalPrice(rental, durationUnit) {
@@ -974,6 +909,17 @@ function setupDeferredRentalState() {
   refs.rentalCardsGrid.classList.add("is-pending");
   refs.rentalCardsGrid.replaceChildren(createEmptyState("Загружаем варианты аренды..."));
   setRentalControlsEnabled(false);
+}
+
+async function loadAndRenderServices() {
+  try {
+    const servicesData = await loadJsonData(SERVICES_DATA_URL, "услуг");
+    state.services = (servicesData.services ?? []).map((item) => ({ ...item }));
+    renderServiceCards(state.services);
+  } catch (error) {
+    refs.servicesCardsGrid.replaceChildren(createEmptyState("Не удалось загрузить данные услуг."));
+    console.error(error);
+  }
 }
 
 function setRentalControlsEnabled(isEnabled) {
@@ -1121,6 +1067,16 @@ function formatRentalCategory(category) {
     moto: "Мото",
     auto: "Авто",
     "yachts-catamarans": "Яхты и катамараны"
+  };
+
+  return labels[category] || capitalize(category);
+}
+
+function formatServiceCategory(category) {
+  const labels = {
+    "fast-track": "Fast Track",
+    "border-run": "Border Run",
+    transfer: "Трансферы"
   };
 
   return labels[category] || capitalize(category);

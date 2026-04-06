@@ -208,5 +208,91 @@
         </div>
       </div>
     </footer>
+
+    <script>
+      (function () {
+        const form = document.querySelector('[data-enhanced-request="true"]');
+        if (!form) {
+          return;
+        }
+
+        const submitButton = form.querySelector('button[type="submit"]');
+        const note = form.querySelector('[data-form-note]');
+
+        const setSubmitting = (isSubmitting) => {
+          if (!submitButton) {
+            return;
+          }
+          submitButton.disabled = isSubmitting;
+          submitButton.textContent = isSubmitting ? 'Отправляем...' : 'Отправить запрос';
+        };
+
+        const buildFallbackMessage = (formData) => {
+          const entries = [];
+          for (const [key, value] of formData.entries()) {
+            if (!value || key.startsWith('_') || key === 'source' || key === 'leadType') {
+              continue;
+            }
+            entries.push(key + ': ' + String(value));
+          }
+          return ['Здравствуйте! Хочу отправить запрос по услуге/товару.', ...entries].join('
+');
+        };
+
+        form.addEventListener('submit', async (event) => {
+          event.preventDefault();
+
+          if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+          }
+
+          const payload = new FormData(form);
+          setSubmitting(true);
+          if (note) {
+            note.textContent = 'Отправляем запрос...';
+          }
+
+          try {
+            const response = await fetch(form.action, {
+              method: 'POST',
+              headers: { Accept: 'application/json' },
+              body: payload
+            });
+
+            if (response.ok) {
+              form.reset();
+              if (note) {
+                note.textContent = 'Запрос отправлен. Менеджер свяжется с вами в ближайшее время.';
+              }
+              return;
+            }
+
+            throw new Error('Email service rejected request');
+          } catch (error) {
+            const message = buildFallbackMessage(payload);
+            const telegramUrl = 'https://t.me/hitachi315';
+            window.open(telegramUrl, '_blank', 'noopener,noreferrer');
+
+            try {
+              if (navigator.clipboard && window.isSecureContext) {
+                await navigator.clipboard.writeText(message);
+                if (note) {
+                  note.textContent = 'Открыт Telegram. Текст запроса скопирован, вставьте его в чат.';
+                }
+              } else if (note) {
+                note.textContent = 'Открыт Telegram. Вставьте детали запроса вручную.';
+              }
+            } catch {
+              if (note) {
+                note.textContent = 'Открыт Telegram. Вставьте детали запроса вручную.';
+              }
+            }
+          } finally {
+            setSubmitting(false);
+          }
+        });
+      })();
+    </script>
   </body>
 </html>

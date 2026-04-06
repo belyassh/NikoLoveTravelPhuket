@@ -203,6 +203,7 @@
         <button id="mobileMenuClose" class="mobile-menu-close" type="button" aria-label="Закрыть меню">×</button>
         <a href="#catalog">Экскурсии</a>
         <a href="#rental">Аренда</a>
+        <a href="#services">Услуги</a>
         <a href="#request">Заявка</a>
         <a href="#rental-request">Заявка на аренду</a>
         <a href="#faq">FAQ</a>
@@ -259,6 +260,16 @@
         </div>
 
         <div id="rentalCardsGrid" class="cards-grid" aria-live="polite"></div>
+      </section>
+
+      <section class="catalog" id="services">
+        <div class="section-head">
+          <h2>Интерактивная витрина услуг</h2>
+          <p>Fast Track, Border Run, трансферы и другие полезные сервисы для отдыха.</p>
+          <a class="btn btn-ghost" href="/services/index.html">Смотреть все услуги</a>
+        </div>
+
+        <div id="servicesCardsGrid" class="cards-grid" aria-live="polite"></div>
       </section>
 
       <section class="request" id="request">
@@ -462,6 +473,7 @@
           <h3>Разделы</h3>
           <a href="#catalog">Экскурсии</a>
           <a href="#rental">Аренда</a>
+          <a href="#services">Услуги</a>
           <a href="#faq">FAQ</a>
           <a href="#request">Оставить заявку</a>
         </nav>
@@ -539,6 +551,24 @@
 
     <template id="rentalCardTemplate">
       <article class="tour-card reveal-up rental-card">
+        <img class="tour-card-image" alt="" loading="lazy" decoding="async" fetchpriority="low" />
+        <div class="tour-card-body">
+          <h3 class="tour-card-title"></h3>
+          <p class="tour-card-overview"></p>
+          <p class="rental-card-meta"></p>
+          <div class="tour-card-foot">
+            <p class="tour-card-price"></p>
+            <div class="tour-card-actions">
+              <button class="btn btn-small btn-ghost" type="button" data-action="details">Подробнее</button>
+              <button class="btn btn-small btn-primary" type="button" data-action="request">Запросить</button>
+            </div>
+          </div>
+        </div>
+      </article>
+    </template>
+
+    <template id="serviceCardTemplate">
+      <article class="tour-card reveal-up service-card">
         <img class="tour-card-image" alt="" loading="lazy" decoding="async" fetchpriority="low" />
         <div class="tour-card-body">
           <h3 class="tour-card-title"></h3>

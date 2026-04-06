@@ -9,6 +9,7 @@ const IMAGE_SRC = path.join(ROOT, "image.png");
 const FAVICON_SRC = path.join(ROOT, "niko_phuket_favicon.ico");
 const SITE_URL = "https://nikophuket.com";
 const FALLBACK_CARD_IMAGE = "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80";
+const TELEGRAM_MANAGER_USERNAME = "hitachi315";
 
 const CATEGORY_LABELS = {
   sea: "Морские экскурсии",
@@ -249,6 +250,91 @@ function pageTemplate({ title, description, canonicalPath, body, jsonLd }) {
         </div>
       </div>
     </footer>
+
+    <script>
+      (function () {
+        const form = document.querySelector('[data-enhanced-request="true"]');
+        if (!form) {
+          return;
+        }
+
+        const submitButton = form.querySelector('button[type="submit"]');
+        const note = form.querySelector('[data-form-note]');
+
+        const setSubmitting = (isSubmitting) => {
+          if (!submitButton) {
+            return;
+          }
+          submitButton.disabled = isSubmitting;
+          submitButton.textContent = isSubmitting ? 'Отправляем...' : 'Отправить запрос';
+        };
+
+        const buildFallbackMessage = (formData) => {
+          const entries = [];
+          for (const [key, value] of formData.entries()) {
+            if (!value || key.startsWith('_') || key === 'source' || key === 'leadType') {
+              continue;
+            }
+            entries.push(key + ': ' + String(value));
+          }
+          return ['Здравствуйте! Хочу отправить запрос по услуге/товару.', ...entries].join('\n');
+        };
+
+        form.addEventListener('submit', async (event) => {
+          event.preventDefault();
+
+          if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+          }
+
+          const payload = new FormData(form);
+          setSubmitting(true);
+          if (note) {
+            note.textContent = 'Отправляем запрос...';
+          }
+
+          try {
+            const response = await fetch(form.action, {
+              method: 'POST',
+              headers: { Accept: 'application/json' },
+              body: payload
+            });
+
+            if (response.ok) {
+              form.reset();
+              if (note) {
+                note.textContent = 'Запрос отправлен. Менеджер свяжется с вами в ближайшее время.';
+              }
+              return;
+            }
+
+            throw new Error('Email service rejected request');
+          } catch (error) {
+            const message = buildFallbackMessage(payload);
+            const telegramUrl = 'https://t.me/${TELEGRAM_MANAGER_USERNAME}';
+            window.open(telegramUrl, '_blank', 'noopener,noreferrer');
+
+            try {
+              if (navigator.clipboard && window.isSecureContext) {
+                await navigator.clipboard.writeText(message);
+                if (note) {
+                  note.textContent = 'Открыт Telegram. Текст запроса скопирован, вставьте его в чат.';
+                }
+              } else if (note) {
+                note.textContent = 'Открыт Telegram. Вставьте детали запроса вручную.';
+              }
+            } catch {
+              if (note) {
+                note.textContent = 'Открыт Telegram. Вставьте детали запроса вручную.';
+              }
+            }
+          } finally {
+            setSubmitting(false);
+          }
+        });
+      })();
+    </script>
   </body>
 </html>`;
 }
@@ -342,7 +428,7 @@ function renderProductRequestForm({ type, itemTitle, endpoint }) {
         <h2>${type === "rental" ? "Запрос по аренде" : "Запрос по экскурсии"}</h2>
         <p>Заполните форму: менеджер свяжется с вами для подтверждения деталей.</p>
       </div>
-      <form class="request-form" method="POST" action="${endpoint}">
+      <form class="request-form" method="POST" action="${endpoint}" data-enhanced-request="true">
         <input type="hidden" name="_subject" value="${escapeHtml(subject)}" />
         <input type="hidden" name="leadType" value="${escapeHtml(leadType)}" />
         <input type="hidden" name="itemTitle" value="${escapeHtml(itemTitle)}" />
@@ -353,6 +439,7 @@ function renderProductRequestForm({ type, itemTitle, endpoint }) {
         </div>
         <div class="form-actions">
           <button class="btn btn-primary" type="submit">Отправить запрос</button>
+          <p class="form-note" data-form-note aria-live="polite"></p>
         </div>
       </form>
     </section></div>`;
