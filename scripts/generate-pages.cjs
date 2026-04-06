@@ -4,6 +4,9 @@ const path = require("path");
 const ROOT = path.resolve(__dirname, "..");
 const PUBLIC_DIR = path.join(ROOT, "public");
 const DATA_DIR = path.join(ROOT, "data");
+const STYLES_SRC = path.join(ROOT, "styles", "main.css");
+const IMAGE_SRC = path.join(ROOT, "image.png");
+const FAVICON_SRC = path.join(ROOT, "niko_phuket_favicon.ico");
 const SITE_URL = "https://nikophuket.com";
 
 const CATEGORY_LABELS = {
@@ -28,6 +31,21 @@ function ensureDir(dirPath) {
 function writeFile(filePath, content) {
   ensureDir(path.dirname(filePath));
   fs.writeFileSync(filePath, content);
+}
+
+function copyFileIfExists(sourcePath, targetPath) {
+  if (!fs.existsSync(sourcePath)) {
+    return;
+  }
+
+  ensureDir(path.dirname(targetPath));
+  fs.copyFileSync(sourcePath, targetPath);
+}
+
+function syncSharedAssets() {
+  copyFileIfExists(STYLES_SRC, path.join(PUBLIC_DIR, "styles", "main.css"));
+  copyFileIfExists(IMAGE_SRC, path.join(PUBLIC_DIR, "image.png"));
+  copyFileIfExists(FAVICON_SRC, path.join(PUBLIC_DIR, "niko_phuket_favicon.ico"));
 }
 
 function escapeHtml(value) {
@@ -72,34 +90,76 @@ function pageTemplate({ title, description, canonicalPath, body, jsonLd }) {
     <meta name="twitter:description" content="${escapeHtml(description)}" />
     <meta name="twitter:image" content="${ogImage}" />
 
+    <link rel="icon" href="/niko_phuket_favicon.ico" sizes="any" />
+    <link rel="shortcut icon" href="/niko_phuket_favicon.ico" type="image/x-icon" />
+    <link rel="apple-touch-icon" href="/image.png" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&family=Unbounded:wght@500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/styles/main.css" />
+
     <style>
-      :root { color-scheme: dark; }
-      body {
-        min-height: 100vh;
-        margin: 0;
-        font-family: "Onest", "Segoe UI", sans-serif;
-        background: radial-gradient(circle at 20% 20%, #0f3f55, #0b1820 52%);
-        color: #f4f8fb;
+      .seo-main {
+        display: grid;
+        gap: 1.8rem;
+        padding-bottom: 2.8rem;
       }
-      a { color: #7be4d6; }
-      main { max-width: 1100px; margin: 0 auto; padding: 1.5rem 1rem 4rem; }
-      .seo-head { margin-bottom: 1rem; }
-      .seo-head h1 { margin: 0 0 0.5rem; }
+      .seo-page {
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--line);
+        background: rgba(255, 254, 248, 0.9);
+        box-shadow: var(--shadow);
+        padding: clamp(1.2rem, 2.5vw, 2rem);
+      }
+      .seo-head { margin-bottom: 0.9rem; }
+      .seo-head h1 { margin: 0 0 0.6rem; }
       .seo-grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
-      .seo-card { border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 1rem; background: rgba(11,24,32,0.5); }
+      .seo-card { border: 1px solid var(--line); border-radius: var(--radius-md); padding: 1rem; background: var(--surface); }
       .seo-card h2, .seo-card h3 { margin-top: 0; }
       .seo-list { margin: 0.7rem 0 0; padding-left: 1.1rem; }
       .seo-breadcrumbs { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 1rem; }
-      .seo-breadcrumbs a { text-decoration: none; }
+      .seo-breadcrumbs a { color: var(--brand); }
       .seo-back { margin-top: 1rem; display: inline-block; }
       .muted { opacity: 0.85; }
+      .seo-header-links { display: flex; gap: 1rem; align-items: center; }
+      .seo-header-links a { color: var(--muted); }
+      .seo-header-links a:hover { color: var(--text); }
+      @media (max-width: 900px) {
+        .seo-header-links { display: none; }
+      }
     </style>
     <script type="application/ld+json">${JSON.stringify(jsonLd)}</script>
   </head>
   <body>
-    <main>
-      ${body}
-      <p class="seo-back"><a href="/index.html">Вернуться на главную Niko Phuket</a></p>
+    <div class="bg-shapes" aria-hidden="true">
+      <span class="shape shape-a"></span>
+      <span class="shape shape-b"></span>
+      <span class="shape shape-c"></span>
+    </div>
+
+    <header class="site-header">
+      <a class="brand" href="/index.html" aria-label="На главную Niko Phuket">
+        <img class="brand-mark" src="/image.png" alt="Логотип Niko Phuket" loading="lazy" decoding="async" />
+        <span class="brand-text">Niko Phuket</span>
+      </a>
+      <nav class="seo-header-links" aria-label="SEO разделы">
+        <a href="/excursions/sea.html">Морские</a>
+        <a href="/excursions/land.html">Наземные</a>
+        <a href="/rental/index.html">Аренда</a>
+        <a href="/services/index.html">Услуги</a>
+      </nav>
+      <a class="btn btn-ghost" href="/index.html#request">Оставить заявку</a>
+    </header>
+
+    <main class="seo-main">
+      <section class="seo-page">
+        ${body}
+        <p class="seo-back"><a href="/index.html">Вернуться на главную Niko Phuket</a></p>
+      </section>
     </main>
   </body>
 </html>`;
@@ -140,13 +200,70 @@ function normalizeServices(raw, currency) {
 
 function cardMarkup(item, urlPath) {
   return `<article class="seo-card">
-    <h3><a href="${urlPath}">${escapeHtml(item.title)}</a></h3>
+    <h3>${escapeHtml(item.title)}</h3>
     <p>${escapeHtml(item.overview || item.description || "")}</p>
     <p class="muted">Стоимость: ${escapeHtml(item.priceLabel)}</p>
+    <p class="seo-card-actions">
+      <a class="btn btn-ghost" href="${urlPath}">Подробнее</a>
+      <a class="btn btn-primary" href="${urlPath}#request">Запросить</a>
+    </p>
   </article>`;
 }
 
-function excursionDetailPage(item) {
+function requestFields(type) {
+  const durationField = type === "rental"
+    ? `<label class="field field-wide"><span>Желаемая длительность аренды</span><input name="rentalDuration" type="text" placeholder="Например: 5 дней" required /></label>`
+    : `<label class="field"><span>Количество взрослых</span><input name="adultsCount" type="number" min="1" value="2" required /></label>
+       <label class="field"><span>Количество детей</span><input name="childrenCount" type="number" min="0" value="0" required /></label>
+       <label class="field"><span>Даты отдыха: с</span><input name="vacationStart" type="date" required /></label>
+       <label class="field"><span>Даты отдыха: по</span><input name="vacationEnd" type="date" required /></label>`;
+
+  return `<label class="field"><span>Имя</span><input name="firstName" type="text" required /></label>
+      <label class="field"><span>Фамилия</span><input name="lastName" type="text" required /></label>
+      <label class="field field-wide"><span>Телефон</span><input name="phone" type="tel" placeholder="+7..." required /></label>
+      <label class="field"><span>Отель</span><input name="hotel" type="text" placeholder="Название отеля" required /></label>
+      <label class="field"><span>Ник в Telegram</span><input name="telegramNick" type="text" placeholder="@nickname" required /></label>
+      ${durationField}`;
+}
+
+function renderProductRequestForm({ type, itemTitle, endpoint }) {
+  const subject = type === "rental"
+    ? `Новый запрос по аренде: ${itemTitle}`
+    : `Новый запрос по экскурсии: ${itemTitle}`;
+  const leadType = type === "rental" ? "Запрос по аренде" : "Запрос по экскурсии";
+  const source = type === "rental" ? "Niko Phuket rental product page" : "Niko Phuket excursion product page";
+
+  if (!endpoint) {
+    return `<section class="request" id="request">
+      <div class="section-head">
+        <h2>${type === "rental" ? "Запрос по аренде" : "Запрос по экскурсии"}</h2>
+        <p>Для отправки запроса напишите менеджеру в Telegram через кнопку в шапке или на главной странице.</p>
+      </div>
+    </section>`;
+  }
+
+  return `<section class="request" id="request">
+      <div class="section-head">
+        <h2>${type === "rental" ? "Запрос по аренде" : "Запрос по экскурсии"}</h2>
+        <p>Заполните форму: менеджер свяжется с вами для подтверждения деталей.</p>
+      </div>
+      <form class="request-form" method="POST" action="${endpoint}">
+        <input type="hidden" name="_subject" value="${escapeHtml(subject)}" />
+        <input type="hidden" name="leadType" value="${escapeHtml(leadType)}" />
+        <input type="hidden" name="itemTitle" value="${escapeHtml(itemTitle)}" />
+        <input type="hidden" name="source" value="${escapeHtml(source)}" />
+        <div class="form-grid">
+          ${requestFields(type)}
+          <input name="_gotcha" type="text" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px;opacity:0;pointer-events:none;" aria-hidden="true" />
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-primary" type="submit">Отправить запрос</button>
+        </div>
+      </form>
+    </section>`;
+}
+
+function excursionDetailPage(item, endpoint) {
   const urlPath = `/excursions/${item.slug}.html`;
   const title = `${item.title} | Экскурсия на Пхукете | Niko Phuket`;
   const description = item.overview || item.description || `Экскурсия ${item.title} на Пхукете`;
@@ -172,7 +289,8 @@ function excursionDetailPage(item) {
         <h2>Что взять с собой</h2>
         <ul class="seo-list">${(item.bring || []).map((x) => `<li>${escapeHtml(x)}</li>`).join("")}</ul>
       </article>
-    </section>`;
+    </section>
+    ${renderProductRequestForm({ type: "excursion", itemTitle: item.title, endpoint })}`;
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -196,7 +314,7 @@ function excursionDetailPage(item) {
   return { path: urlPath, html: pageTemplate({ title, description, canonicalPath: urlPath, body, jsonLd }) };
 }
 
-function rentalDetailPage(item) {
+function rentalDetailPage(item, endpoint) {
   const urlPath = `/rental/${item.slug}.html`;
   const title = `${item.title} | Аренда на Пхукете | Niko Phuket`;
   const description = item.overview || item.description || `Аренда ${item.title} на Пхукете`;
@@ -224,7 +342,8 @@ function rentalDetailPage(item) {
         <li>Неделя: ${escapeHtml(asPrice(prices.week, "", "USD"))}</li>
         <li>Месяц: ${escapeHtml(asPrice(prices.month, "", "USD"))}</li>
       </ul>
-    </section>`;
+    </section>
+    ${renderProductRequestForm({ type: "rental", itemTitle: item.title, endpoint })}`;
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -322,6 +441,47 @@ function categoryPage({ sectionPath, slug, title, description, items, itemPathBu
   return { path: urlPath, html: pageTemplate({ title, description, canonicalPath: urlPath, body, jsonLd }) };
 }
 
+function excursionsIndexPage(excursionsByCategory) {
+  const sea = excursionsByCategory.sea || [];
+  const land = excursionsByCategory.land || [];
+  const urlPath = "/excursions/index.html";
+  const title = "Все экскурсии на Пхукете: морские и наземные | Niko Phuket";
+  const description = "Полный список экскурсий на Пхукете с разделением на морские и наземные направления.";
+
+  const section = (sectionTitle, items) => `<section class="catalog">
+      <div class="section-head">
+        <h2>${escapeHtml(sectionTitle)}</h2>
+        <p>Всего маршрутов: ${items.length}</p>
+      </div>
+      <div class="seo-grid">
+        ${items.map((item) => cardMarkup(item, `/excursions/${item.slug}.html`)).join("\n")}
+      </div>
+    </section>`;
+
+  const body = `<nav class="seo-breadcrumbs" aria-label="Хлебные крошки">
+      <a href="/index.html">Главная</a>
+      <span>/</span>
+      <span>Все экскурсии</span>
+    </nav>
+    <section class="seo-head">
+      <h1>Все экскурсии на Пхукете</h1>
+      <p>Полный каталог без ограничений по количеству: морские и наземные экскурсии отдельными витринами.</p>
+      <p><a class="btn btn-ghost" href="/rental/index.html">Перейти в раздел аренды</a></p>
+    </section>
+    ${section("Морские экскурсии", sea)}
+    ${section("Наземные экскурсии", land)}`;
+
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: "Все экскурсии на Пхукете",
+    description,
+    url: `${SITE_URL}${urlPath}`
+  };
+
+  return { path: urlPath, html: pageTemplate({ title, description, canonicalPath: urlPath, body, jsonLd }) };
+}
+
 function rentalIndexPage(rentalsByGroup) {
   const urlPath = "/rental/index.html";
   const title = "Аренда на Пхукете: авто, мото, яхты и катамараны | Niko Phuket";
@@ -407,11 +567,14 @@ function buildSitemap(urlPaths) {
 }
 
 function main() {
+  syncSharedAssets();
+
   const excursionsData = readJson(path.join(DATA_DIR, "excursions.json"));
   const rentalsData = readJson(path.join(DATA_DIR, "rentals.json"));
   const servicesData = readJson(path.join(DATA_DIR, "services.json"));
 
   const currency = excursionsData.agency?.currency || "USD";
+  const endpoint = excursionsData.emailService?.endpoint || "";
   const excursions = normalizeExcursions(excursionsData.excursions || [], currency);
   const rentals = normalizeRentals(rentalsData.rentals || [], currency);
   const services = normalizeServices(servicesData.services || [], currency);
@@ -423,7 +586,7 @@ function main() {
   const generated = [];
 
   excursions.forEach((item) => {
-    const page = excursionDetailPage(item);
+    const page = excursionDetailPage(item, endpoint);
     writeFile(path.join(PUBLIC_DIR, page.path), page.html);
     generated.push(page.path);
   });
@@ -450,8 +613,12 @@ function main() {
     generated.push(page.path);
   });
 
+  const excursionsIndex = excursionsIndexPage(excursionsByCategory);
+  writeFile(path.join(PUBLIC_DIR, excursionsIndex.path), excursionsIndex.html);
+  generated.push(excursionsIndex.path);
+
   rentals.forEach((item) => {
-    const page = rentalDetailPage(item);
+    const page = rentalDetailPage(item, endpoint);
     writeFile(path.join(PUBLIC_DIR, page.path), page.html);
     generated.push(page.path);
   });

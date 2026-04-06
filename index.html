@@ -233,20 +233,7 @@
         <div class="section-head">
           <h2>Экскурсии и туры по Пхукету</h2>
           <p>Выбирайте морские, обзорные и культурные маршруты с удобным онлайн-бронированием.</p>
-        </div>
-
-        <div class="catalog-controls">
-          <label class="field">
-            <span>Поиск экскурсии</span>
-            <input id="searchInput" type="search" placeholder="Например: яхта, каньон, закат" />
-          </label>
-
-          <label class="field">
-            <span>Фильтр по направлению</span>
-            <select id="tagFilter">
-              <option value="all">Все направления</option>
-            </select>
-          </label>
+          <a class="btn btn-ghost" href="/excursions/index.html">Смотреть все экскурсии</a>
         </div>
 
         <div id="cardsGrid" class="cards-grid" aria-live="polite"></div>
@@ -277,8 +264,8 @@
 
       <section class="request" id="request">
         <div class="section-head">
-          <h2>Заявка на экскурсию</h2>
-          <p>Заполните поля, и мы подготовим индивидуальное предложение.</p>
+          <h2>Заявка на подбор экскурсии</h2>
+          <p>Заполните короткую форму, и мы подберем маршруты под ваш отдых.</p>
         </div>
 
         <form id="requestForm" class="request-form" novalidate>
@@ -294,53 +281,46 @@
             </label>
 
             <label class="field field-wide">
-              <span>Экскурсия</span>
-              <select id="excursionSelect" name="excursionId" required>
-                <option value="">Выберите экскурсию</option>
-              </select>
+              <span>Телефон</span>
+              <input name="phone" type="tel" placeholder="+7..." required />
             </label>
 
             <label class="field">
-              <span>Количество человек</span>
-              <input id="peopleInput" name="peopleCount" type="number" min="1" value="1" required />
+              <span>Количество взрослых</span>
+              <input name="adultsCount" type="number" min="1" value="2" required />
             </label>
 
             <label class="field">
-              <span>Итоговая стоимость</span>
-              <input id="totalPrice" name="totalPrice" type="text" readonly />
+              <span>Количество детей</span>
+              <input name="childrenCount" type="number" min="0" value="0" required />
             </label>
 
             <label class="field field-wide">
-              <span>Название отеля или точка Google Maps</span>
+              <span>Отель</span>
               <input
-                name="pickupPoint"
+                name="hotel"
                 type="text"
-                placeholder="Например: Hilton Garden Inn или https://maps.google.com/..."
+                placeholder="Например: Hilton Garden Inn"
                 required
               />
             </label>
 
             <label class="field">
-              <span>Желаемая дата</span>
-              <input name="desiredDate" type="date" required />
+              <span>Даты отдыха: с</span>
+              <input name="vacationStart" type="date" required />
             </label>
 
             <label class="field">
-              <span>Телефон или ник в Telegram</span>
-              <input
-                name="contact"
-                type="text"
-                placeholder="+7..., @nickname"
-                required
-              />
+              <span>Даты отдыха: по</span>
+              <input name="vacationEnd" type="date" required />
             </label>
 
             <label class="field field-wide">
-              <span>Email для подтверждения</span>
+              <span>Ник в Telegram</span>
               <input
-                name="email"
-                type="email"
-                placeholder="name@example.com"
+                name="telegramNick"
+                type="text"
+                placeholder="@nickname"
                 required
               />
             </label>
@@ -356,7 +336,7 @@
           </div>
 
           <div class="form-actions">
-            <button class="btn btn-primary" type="submit">Отправить заявку</button>
+            <button class="btn btn-primary" type="submit">Отправить заявку на подбор</button>
             <p id="formNote" class="form-note" aria-live="polite"></p>
           </div>
         </form>
@@ -365,7 +345,7 @@
       <section class="request" id="rental-request">
         <div class="section-head">
           <h2>Заявка на аренду</h2>
-          <p>Оставьте параметры аренды, и менеджер подтвердит доступность и итоговую цену.</p>
+          <p>Оставьте контакты и желаемую длительность, менеджер подберет вариант аренды.</p>
         </div>
 
         <form id="rentalRequestForm" class="request-form" novalidate>
@@ -381,50 +361,23 @@
             </label>
 
             <label class="field field-wide">
-              <span>Что хотите арендовать</span>
-              <select id="rentalSelect" name="rentalId" required>
-                <option value="">Выберите вариант аренды</option>
-              </select>
+              <span>Телефон</span>
+              <input name="phone" type="tel" placeholder="+7..." required />
             </label>
 
             <label class="field">
-              <span>Дата начала аренды</span>
-              <input id="rentalStartDate" name="startDate" type="date" required />
+              <span>Отель</span>
+              <input name="hotel" type="text" placeholder="Название отеля" required />
             </label>
 
             <label class="field">
-              <span>Дата окончания аренды</span>
-              <input id="rentalEndDate" name="endDate" type="date" required />
+              <span>Ник в Telegram</span>
+              <input name="telegramNick" type="text" placeholder="@nickname" required />
             </label>
 
             <label class="field field-wide">
-              <span>Расчетный период</span>
-              <input id="rentalDurationCount" class="input-muted" name="durationCount" type="text" value="Рассчитывается автоматически" readonly />
-            </label>
-
-            <label class="field">
-              <span>Итоговая стоимость</span>
-              <input id="rentalTotalPrice" class="input-muted" name="totalPrice" type="text" value="Рассчитывается автоматически" readonly />
-            </label>
-
-            <label class="field field-wide">
-              <span>Отель или место подачи</span>
-              <input
-                name="pickupPoint"
-                type="text"
-                placeholder="Например: Hilton Garden Inn или точка на карте"
-                required
-              />
-            </label>
-
-            <label class="field">
-              <span>Телефон или ник в Telegram</span>
-              <input name="contact" type="text" placeholder="+7..., @nickname" required />
-            </label>
-
-            <label class="field field-wide">
-              <span>Email для подтверждения</span>
-              <input name="email" type="email" placeholder="name@example.com" required />
+              <span>Желаемая длительность аренды</span>
+              <input name="rentalDuration" type="text" placeholder="Например: 5 дней" required />
             </label>
 
             <input
@@ -651,7 +604,7 @@
             <p class="tour-card-price"></p>
             <div class="tour-card-actions">
               <button class="btn btn-small btn-ghost" type="button" data-action="details">Подробнее</button>
-              <button class="btn btn-small btn-primary" type="button" data-action="select">Выбрать</button>
+              <button class="btn btn-small btn-primary" type="button" data-action="select">Запросить</button>
             </div>
           </div>
         </div>

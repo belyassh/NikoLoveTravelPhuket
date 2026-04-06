@@ -20,33 +20,74 @@
     <meta name="twitter:description" content="Быстрое прохождение контроля на вылете и приоритетное сопровождение." />
     <meta name="twitter:image" content="https://nikophuket.com/image.png" />
 
+    <link rel="icon" href="/niko_phuket_favicon.ico" sizes="any" />
+    <link rel="shortcut icon" href="/niko_phuket_favicon.ico" type="image/x-icon" />
+    <link rel="apple-touch-icon" href="/image.png" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&family=Unbounded:wght@500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/styles/main.css" />
+
     <style>
-      :root { color-scheme: dark; }
-      body {
-        min-height: 100vh;
-        margin: 0;
-        font-family: "Onest", "Segoe UI", sans-serif;
-        background: radial-gradient(circle at 20% 20%, #0f3f55, #0b1820 52%);
-        color: #f4f8fb;
+      .seo-main {
+        display: grid;
+        gap: 1.8rem;
+        padding-bottom: 2.8rem;
       }
-      a { color: #7be4d6; }
-      main { max-width: 1100px; margin: 0 auto; padding: 1.5rem 1rem 4rem; }
-      .seo-head { margin-bottom: 1rem; }
-      .seo-head h1 { margin: 0 0 0.5rem; }
+      .seo-page {
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--line);
+        background: rgba(255, 254, 248, 0.9);
+        box-shadow: var(--shadow);
+        padding: clamp(1.2rem, 2.5vw, 2rem);
+      }
+      .seo-head { margin-bottom: 0.9rem; }
+      .seo-head h1 { margin: 0 0 0.6rem; }
       .seo-grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
-      .seo-card { border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 1rem; background: rgba(11,24,32,0.5); }
+      .seo-card { border: 1px solid var(--line); border-radius: var(--radius-md); padding: 1rem; background: var(--surface); }
       .seo-card h2, .seo-card h3 { margin-top: 0; }
       .seo-list { margin: 0.7rem 0 0; padding-left: 1.1rem; }
       .seo-breadcrumbs { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 1rem; }
-      .seo-breadcrumbs a { text-decoration: none; }
+      .seo-breadcrumbs a { color: var(--brand); }
       .seo-back { margin-top: 1rem; display: inline-block; }
       .muted { opacity: 0.85; }
+      .seo-header-links { display: flex; gap: 1rem; align-items: center; }
+      .seo-header-links a { color: var(--muted); }
+      .seo-header-links a:hover { color: var(--text); }
+      @media (max-width: 900px) {
+        .seo-header-links { display: none; }
+      }
     </style>
     <script type="application/ld+json">{"@context":"https://schema.org","@type":"Service","name":"Fast Track в аэропорту Пхукета (вылет)","description":"Быстрое прохождение контроля на вылете и приоритетное сопровождение.","provider":{"@type":"TravelAgency","name":"Niko Phuket","url":"https://nikophuket.com"},"areaServed":{"@type":"Place","name":"Phuket, Thailand"},"offers":{"@type":"Offer","price":49,"priceCurrency":"USD","url":"https://nikophuket.com/services/fast-track-departure-phuket.html"}}</script>
   </head>
   <body>
-    <main>
-      <nav class="seo-breadcrumbs" aria-label="Хлебные крошки">
+    <div class="bg-shapes" aria-hidden="true">
+      <span class="shape shape-a"></span>
+      <span class="shape shape-b"></span>
+      <span class="shape shape-c"></span>
+    </div>
+
+    <header class="site-header">
+      <a class="brand" href="/index.html" aria-label="На главную Niko Phuket">
+        <img class="brand-mark" src="/image.png" alt="Логотип Niko Phuket" loading="lazy" decoding="async" />
+        <span class="brand-text">Niko Phuket</span>
+      </a>
+      <nav class="seo-header-links" aria-label="SEO разделы">
+        <a href="/excursions/sea.html">Морские</a>
+        <a href="/excursions/land.html">Наземные</a>
+        <a href="/rental/index.html">Аренда</a>
+        <a href="/services/index.html">Услуги</a>
+      </nav>
+      <a class="btn btn-ghost" href="/index.html#request">Оставить заявку</a>
+    </header>
+
+    <main class="seo-main">
+      <section class="seo-page">
+        <nav class="seo-breadcrumbs" aria-label="Хлебные крошки">
       <a href="/index.html">Главная</a>
       <span>/</span>
       <a href="/services/index.html">Услуги</a>
@@ -64,7 +105,8 @@
       <h2>Описание услуги</h2>
       <p>Сервис помогает пройти аэропортовые процедуры на вылете быстрее и спокойнее, особенно в пиковые часы.</p>
     </section>
-      <p class="seo-back"><a href="/index.html">Вернуться на главную Niko Phuket</a></p>
+        <p class="seo-back"><a href="/index.html">Вернуться на главную Niko Phuket</a></p>
+      </section>
     </main>
   </body>
 </html>

@@ -5,8 +5,6 @@ const state = {
   filteredRentals: [],
   rentalsLoaded: false,
   rentalLoadPromise: null,
-  selectedId: "",
-  selectedRentalId: "",
   telegramUsername: "",
   currency: "USD",
   emailService: null,
@@ -41,14 +39,6 @@ const refs = {
   submitButton: document.querySelector('#requestForm button[type="submit"]'),
   rentalForm: document.querySelector("#rentalRequestForm"),
   rentalSubmitButton: document.querySelector('#rentalRequestForm button[type="submit"]'),
-  excursionSelect: document.querySelector("#excursionSelect"),
-  rentalSelect: document.querySelector("#rentalSelect"),
-  peopleInput: document.querySelector("#peopleInput"),
-  rentalDurationCount: document.querySelector("#rentalDurationCount"),
-  rentalStartDate: document.querySelector("#rentalStartDate"),
-  rentalEndDate: document.querySelector("#rentalEndDate"),
-  totalPrice: document.querySelector("#totalPrice"),
-  rentalTotalPrice: document.querySelector("#rentalTotalPrice"),
   formNote: document.querySelector("#formNote"),
   rentalFormNote: document.querySelector("#rentalFormNote"),
   managerLink: document.querySelector("#managerLink"),
@@ -91,9 +81,7 @@ async function initialize() {
   state.emailService = normalizeEmailServiceConfig(excursionsData.emailService);
 
   setupManagerLink();
-  populateTagFilter();
-  populateExcursionSelect();
-  renderCards(state.filtered);
+  renderCards(getTopExcursions(state.excursions));
   setupDeferredRentalState();
   bindEvents();
   setupRentalLazyLoading();
@@ -103,9 +91,6 @@ async function initialize() {
   }
 
   enforceHorizontalViewport();
-  updateTotalPrice();
-  syncRentalRangeConstraints();
-  updateRentalTotalPrice();
 }
 
 function bindNavigationEvents() {
@@ -156,8 +141,6 @@ function bindNavigationEvents() {
 }
 
 function bindEvents() {
-  refs.searchInput.addEventListener("input", debounce(applyFilters, INPUT_DEBOUNCE_MS));
-  refs.tagFilter.addEventListener("change", applyFilters);
   refs.rentalSearchInput.addEventListener("input", debounce(async () => {
     if (await ensureRentalsLoaded()) {
       applyRentalFilters();
@@ -168,11 +151,6 @@ function bindEvents() {
       applyRentalFilters();
     }
   });
-  refs.excursionSelect.addEventListener("change", onSelectFromForm);
-  refs.rentalSelect.addEventListener("change", onRentalSelectFromForm);
-  refs.peopleInput.addEventListener("input", updateTotalPrice);
-  refs.rentalStartDate.addEventListener("change", onRentalDateRangeChange);
-  refs.rentalEndDate.addEventListener("change", onRentalDateRangeChange);
   refs.form.addEventListener("submit", onFormSubmit);
   refs.rentalForm.addEventListener("submit", onRentalFormSubmit);
   refs.dialogClose.addEventListener("click", closeDialog);
@@ -183,7 +161,6 @@ function bindEvents() {
 
   refs.rentalSearchInput.addEventListener("focus", loadRentalsOnIntent, { once: true });
   refs.rentalTagFilter.addEventListener("focus", loadRentalsOnIntent, { once: true });
-  refs.rentalSelect.addEventListener("focus", loadRentalsOnIntent, { once: true });
   refs.rentalForm.addEventListener("pointerdown", loadRentalsOnIntent, { once: true, passive: true });
 
   refs.detailsDialog.addEventListener("click", (event) => {
@@ -257,30 +234,6 @@ function setupManagerLink() {
   refs.managerLink.textContent = "Открыть Telegram";
 }
 
-function populateTagFilter() {
-  const tags = [...new Set(state.excursions.flatMap((item) => item.tags || []))].sort();
-
-  for (const tag of tags) {
-    const option = document.createElement("option");
-    option.value = tag;
-    option.textContent = capitalize(tag);
-    refs.tagFilter.append(option);
-  }
-}
-
-function populateExcursionSelect() {
-  const fragment = document.createDocumentFragment();
-
-  for (const excursion of state.excursions) {
-    const option = document.createElement("option");
-    option.value = excursion.id;
-    option.textContent = `${excursion.title} (${formatPrice(excursion.price)})`;
-    fragment.append(option);
-  }
-
-  refs.excursionSelect.append(fragment);
-}
-
 function populateRentalTagFilter() {
   refs.rentalTagFilter.querySelectorAll('option:not([value="all"])').forEach((option) => option.remove());
   const categories = [...new Set(state.rentals.map((item) => item.category).filter(Boolean))].sort();
@@ -293,31 +246,16 @@ function populateRentalTagFilter() {
   }
 }
 
-function populateRentalSelect() {
-  refs.rentalSelect.querySelectorAll('option:not([value=""])').forEach((option) => option.remove());
-  const fragment = document.createDocumentFragment();
+function getTopExcursions(items) {
+  const withRank = items
+    .filter((item) => Number.isFinite(Number(item.topRank)) && Number(item.topRank) >= 1 && Number(item.topRank) <= 6)
+    .sort((a, b) => Number(a.topRank) - Number(b.topRank));
 
-  for (const rental of state.rentals) {
-    const option = document.createElement("option");
-    option.value = rental.id;
-    option.textContent = `${rental.title} (от ${formatPrice(getRentalPrice(rental, "month"))} / месяц • ${formatPrice(getRentalPrice(rental, "week"))} / неделя)`;
-    fragment.append(option);
+  if (withRank.length) {
+    return withRank.slice(0, 6);
   }
 
-  refs.rentalSelect.append(fragment);
-}
-
-function applyFilters() {
-  const query = refs.searchInput.value.trim().toLowerCase();
-  const tag = refs.tagFilter.value;
-
-  state.filtered = state.excursions.filter((item) => {
-    const byTag = tag === "all" || (item.tags || []).includes(tag);
-    const byQuery = !query || item._searchIndex.includes(query);
-    return byTag && byQuery;
-  });
-
-  renderCards(state.filtered);
+  return [...items].slice(0, 6);
 }
 
 function renderCards(items) {
@@ -345,8 +283,12 @@ function renderCards(items) {
     const detailsBtn = node.querySelector('[data-action="details"]');
     const selectBtn = node.querySelector('[data-action="select"]');
 
-    detailsBtn.addEventListener("click", () => openDetails(item.id));
-    selectBtn.addEventListener("click", () => selectExcursion(item.id, true));
+    detailsBtn.addEventListener("click", () => {
+      window.location.href = buildExcursionPagePath(item);
+    });
+    selectBtn.addEventListener("click", () => {
+      window.location.href = `${buildExcursionPagePath(item)}#request`;
+    });
 
     card.style.animationDelay = `${Math.min(320, index * 60)}ms`;
     index += 1;
@@ -399,8 +341,12 @@ function renderRentalCards(items) {
     const detailsBtn = node.querySelector('[data-action="details"]');
     const requestBtn = node.querySelector('[data-action="request"]');
 
-    detailsBtn.addEventListener("click", () => openRentalDetails(item.id));
-    requestBtn.addEventListener("click", () => requestRental(item.id));
+    detailsBtn.addEventListener("click", () => {
+      window.location.href = buildRentalPagePath(item);
+    });
+    requestBtn.addEventListener("click", () => {
+      window.location.href = `${buildRentalPagePath(item)}#request`;
+    });
 
     card.style.animationDelay = `${Math.min(320, index * 60)}ms`;
     index += 1;
@@ -471,27 +417,6 @@ function openRentalDetails(rentalId) {
   refs.detailsDialog.showModal();
 }
 
-async function requestRental(rentalId) {
-  const rentalsReady = await ensureRentalsLoaded();
-  if (!rentalsReady) {
-    refs.rentalFormNote.textContent = "Не удалось загрузить данные аренды.";
-    return;
-  }
-
-  const rental = getRentalById(rentalId);
-  if (!rental) {
-    return;
-  }
-
-  selectRental(rental.id, true);
-  refs.rentalFormNote.textContent = `Вы выбрали «${rental.title}». Заполните форму и отправьте заявку.`;
-}
-
-function onRentalDateRangeChange() {
-  syncRentalRangeConstraints();
-  updateRentalTotalPrice();
-}
-
 function openDetails(excursionId) {
   const excursion = getExcursionById(excursionId);
   if (!excursion) {
@@ -559,60 +484,6 @@ function closeDialog() {
   refs.detailsDialog.close();
 }
 
-function selectExcursion(excursionId, scrollToForm = false) {
-  state.selectedId = excursionId;
-  refs.excursionSelect.value = excursionId;
-  updateTotalPrice();
-
-  if (scrollToForm) {
-    document.querySelector("#request").scrollIntoView({ behavior: "smooth", block: "start" });
-  }
-}
-
-function onSelectFromForm(event) {
-  state.selectedId = event.target.value;
-  updateTotalPrice();
-}
-
-function onRentalSelectFromForm(event) {
-  state.selectedRentalId = event.target.value;
-  updateRentalTotalPrice();
-}
-
-function updateTotalPrice() {
-  const selected = getExcursionById(state.selectedId || refs.excursionSelect.value);
-  const count = Math.max(1, Number(refs.peopleInput.value) || 1);
-
-  if (!selected) {
-    refs.totalPrice.value = "Выберите экскурсию";
-    return;
-  }
-
-  const total = selected.price * count;
-  refs.totalPrice.value = `${formatPrice(total)} (${count} чел.)`;
-}
-
-function updateRentalTotalPrice() {
-  const selected = getRentalById(state.selectedRentalId || refs.rentalSelect.value);
-  const duration = getRentalDurationInfo();
-
-  if (!selected) {
-    setRentalAutoCalculatedState();
-    return;
-  }
-
-  if (!duration.valid) {
-    setRentalAutoCalculatedState();
-    return;
-  }
-
-  const best = calculateBestRentalCost(selected, duration.count);
-  refs.rentalDurationCount.value = `${duration.count} ${pluralizeDays(duration.count)}`;
-  refs.rentalTotalPrice.value = `${formatPrice(best.total)} (${formatBundleLabel(best.bundle)})`;
-  refs.rentalDurationCount.classList.remove("input-muted");
-  refs.rentalTotalPrice.classList.remove("input-muted");
-}
-
 async function onFormSubmit(event) {
   event.preventDefault();
 
@@ -622,37 +493,32 @@ async function onFormSubmit(event) {
   }
 
   const formData = new FormData(refs.form);
-  const excursion = getExcursionById(formData.get("excursionId"));
-
-  if (!excursion) {
-    refs.formNote.textContent = "Выберите экскурсию из списка.";
-    return;
-  }
-
-  const peopleCount = Math.max(1, Number(formData.get("peopleCount")) || 1);
-  const totalPrice = excursion.price * peopleCount;
   const requestDetails = {
     firstName: formData.get("firstName"),
     lastName: formData.get("lastName"),
-    excursionTitle: excursion.title,
-    peopleCount,
-    totalPrice: formatPrice(totalPrice),
-    pickupPoint: formData.get("pickupPoint"),
-    desiredDate: formData.get("desiredDate"),
-    contact: formData.get("contact"),
-    email: formData.get("email")
+    phone: formData.get("phone"),
+    hotel: formData.get("hotel"),
+    telegramNick: formData.get("telegramNick"),
+    adultsCount: Math.max(1, Number(formData.get("adultsCount")) || 1),
+    childrenCount: Math.max(0, Number(formData.get("childrenCount")) || 0),
+    vacationStart: formData.get("vacationStart"),
+    vacationEnd: formData.get("vacationEnd")
   };
 
+  if (requestDetails.vacationEnd < requestDetails.vacationStart) {
+    refs.formNote.textContent = "Проверьте даты отдыха: дата окончания не может быть раньше даты начала.";
+    return;
+  }
+
   const message = [
-    "Привет! Я хочу заказать экскурсию, вот детали моей заявки:",
+    "Привет! Я хочу оставить заявку на подбор экскурсии, вот мои данные:",
     `Имя и фамилия: ${requestDetails.firstName} ${requestDetails.lastName}`,
-    `Экскурсия: ${requestDetails.excursionTitle}`,
-    `Количество человек: ${requestDetails.peopleCount}`,
-    `Итоговая стоимость: ${requestDetails.totalPrice}`,
-    `Отель/точка Google Maps: ${requestDetails.pickupPoint}`,
-    `Желаемая дата: ${requestDetails.desiredDate}`,
-    `Контакт: ${requestDetails.contact}`,
-    `Email: ${requestDetails.email}`
+    `Телефон: ${requestDetails.phone}`,
+    `Отель: ${requestDetails.hotel}`,
+    `Telegram: ${requestDetails.telegramNick}`,
+    `Взрослые: ${requestDetails.adultsCount}`,
+    `Дети: ${requestDetails.childrenCount}`,
+    `Даты отдыха: ${requestDetails.vacationStart} - ${requestDetails.vacationEnd}`
   ].join("\n");
 
   setExcursionSubmittingState(true);
@@ -667,13 +533,10 @@ async function onFormSubmit(event) {
       const result = await sendRequestViaEmailService(requestDetails, message);
 
       if (result.ok) {
-        refs.formNote.textContent = "Заявка отправлена. Мы свяжемся с вами в ближайшее время.";
+        refs.formNote.textContent = "Заявка на подбор отправлена. Мы свяжемся с вами в ближайшее время.";
         refs.form.reset();
-        refs.peopleInput.value = "1";
-        state.selectedId = "";
-        updateTotalPrice();
         showStatusDialog({
-          title: "Мы приняли вашу заявку",
+          title: "Мы приняли вашу заявку на подбор",
           text: "Менеджер свяжется с вами в ближайшее время.",
           mode: "success"
         });
@@ -707,13 +570,6 @@ async function onFormSubmit(event) {
 
 async function onRentalFormSubmit(event) {
   event.preventDefault();
-  syncRentalRangeConstraints();
-
-  const rentalsReady = await ensureRentalsLoaded();
-  if (!rentalsReady) {
-    refs.rentalFormNote.textContent = "Не удалось загрузить данные аренды.";
-    return;
-  }
 
   if (!refs.rentalForm.checkValidity()) {
     refs.rentalForm.reportValidity();
@@ -721,49 +577,22 @@ async function onRentalFormSubmit(event) {
   }
 
   const formData = new FormData(refs.rentalForm);
-  const rental = getRentalById(formData.get("rentalId"));
-
-  if (!rental) {
-    refs.rentalFormNote.textContent = "Выберите вариант аренды из списка.";
-    return;
-  }
-
-  const duration = getRentalDurationInfo();
-
-  if (!duration.valid) {
-    refs.rentalFormNote.textContent = duration.message;
-    return;
-  }
-
-  const best = calculateBestRentalCost(rental, duration.count);
   const requestDetails = {
     firstName: formData.get("firstName"),
     lastName: formData.get("lastName"),
-    rentalTitle: rental.title,
-    rentalCategory: formatRentalCategory(rental.category),
-    durationCount: duration.count,
-    pricingBreakdown: formatBundleLabel(best.bundle),
-    dateRange: `${formData.get("startDate")} - ${formData.get("endDate")}`,
-    startDate: formData.get("startDate"),
-    endDate: formData.get("endDate"),
-    totalPrice: formatPrice(best.total),
-    pickupPoint: formData.get("pickupPoint"),
-    contact: formData.get("contact"),
-    email: formData.get("email")
+    phone: formData.get("phone"),
+    hotel: formData.get("hotel"),
+    telegramNick: formData.get("telegramNick"),
+    rentalDuration: formData.get("rentalDuration")
   };
 
   const message = [
-    "Привет! Я хочу оформить аренду, вот детали моей заявки:",
+    "Привет! Я хочу оставить заявку на аренду, вот мои данные:",
     `Имя и фамилия: ${requestDetails.firstName} ${requestDetails.lastName}`,
-    `Позиция: ${requestDetails.rentalTitle}`,
-    `Категория: ${requestDetails.rentalCategory}`,
-    `Период аренды: ${requestDetails.durationCount} ${pluralizeDays(requestDetails.durationCount)}`,
-    `Диапазон дат: ${requestDetails.dateRange}`,
-    `Расчет: ${requestDetails.pricingBreakdown}`,
-    `Итоговая стоимость: ${requestDetails.totalPrice}`,
-    `Отель/точка подачи: ${requestDetails.pickupPoint}`,
-    `Контакт: ${requestDetails.contact}`,
-    `Email: ${requestDetails.email}`
+    `Телефон: ${requestDetails.phone}`,
+    `Отель: ${requestDetails.hotel}`,
+    `Telegram: ${requestDetails.telegramNick}`,
+    `Желаемая длительность аренды: ${requestDetails.rentalDuration}`
   ].join("\n");
 
   setRentalSubmittingState(true);
@@ -780,9 +609,6 @@ async function onRentalFormSubmit(event) {
       if (result.ok) {
         refs.rentalFormNote.textContent = "Заявка на аренду отправлена. Мы свяжемся с вами в ближайшее время.";
         refs.rentalForm.reset();
-        state.selectedRentalId = "";
-        syncRentalRangeConstraints();
-        updateRentalTotalPrice();
         showStatusDialog({
           title: "Мы приняли вашу заявку",
           text: "Менеджер свяжется с вами в ближайшее время.",
@@ -819,7 +645,7 @@ async function onRentalFormSubmit(event) {
 function setExcursionSubmittingState(isSubmitting) {
   state.isExcursionSubmitting = isSubmitting;
   refs.submitButton.disabled = isSubmitting;
-  refs.submitButton.textContent = isSubmitting ? "Отправляем..." : "Отправить заявку";
+  refs.submitButton.textContent = isSubmitting ? "Отправляем..." : "Отправить заявку на подбор";
 }
 
 function setRentalSubmittingState(isSubmitting) {
@@ -854,17 +680,17 @@ function closeStatusDialog() {
 async function sendRequestViaEmailService(requestDetails, message) {
   try {
     const payload = new FormData();
-    payload.append("_subject", `Новая заявка на экскурсию: ${requestDetails.excursionTitle}`);
+    payload.append("_subject", "Новая заявка на подбор экскурсии");
     payload.append("name", `${requestDetails.firstName} ${requestDetails.lastName}`);
-    payload.append("excursion", requestDetails.excursionTitle);
-    payload.append("peopleCount", String(requestDetails.peopleCount));
-    payload.append("totalPrice", requestDetails.totalPrice);
-    payload.append("pickupPoint", requestDetails.pickupPoint);
-    payload.append("desiredDate", requestDetails.desiredDate);
-    payload.append("contact", requestDetails.contact);
-    payload.append("email", requestDetails.email);
-    payload.append("_replyto", requestDetails.email);
-    payload.append("source", "Niko Travel website form");
+    payload.append("phone", requestDetails.phone);
+    payload.append("hotel", requestDetails.hotel);
+    payload.append("telegramNick", requestDetails.telegramNick);
+    payload.append("adultsCount", String(requestDetails.adultsCount));
+    payload.append("childrenCount", String(requestDetails.childrenCount));
+    payload.append("vacationStart", requestDetails.vacationStart);
+    payload.append("vacationEnd", requestDetails.vacationEnd);
+    payload.append("leadType", "Заявка на подбор экскурсии");
+    payload.append("source", "Niko Travel selection request form");
     payload.append("submittedAt", new Date().toISOString());
     payload.append("message", message);
 
@@ -894,21 +720,14 @@ async function sendRequestViaEmailService(requestDetails, message) {
 async function sendRentalRequestViaEmailService(requestDetails, message) {
   try {
     const payload = new FormData();
-    payload.append("_subject", `Новая заявка на аренду: ${requestDetails.rentalTitle}`);
+    payload.append("_subject", "Новая заявка на аренду");
     payload.append("name", `${requestDetails.firstName} ${requestDetails.lastName}`);
-    payload.append("rental", requestDetails.rentalTitle);
-    payload.append("category", requestDetails.rentalCategory);
-    payload.append("durationCount", String(requestDetails.durationCount));
-    payload.append("pricingBreakdown", requestDetails.pricingBreakdown);
-    payload.append("startDate", requestDetails.startDate);
-    payload.append("endDate", requestDetails.endDate);
-    payload.append("dateRange", requestDetails.dateRange);
-    payload.append("totalPrice", requestDetails.totalPrice);
-    payload.append("pickupPoint", requestDetails.pickupPoint);
-    payload.append("contact", requestDetails.contact);
-    payload.append("email", requestDetails.email);
-    payload.append("_replyto", requestDetails.email);
-    payload.append("source", "Niko Travel rental website form");
+    payload.append("phone", requestDetails.phone);
+    payload.append("hotel", requestDetails.hotel);
+    payload.append("telegramNick", requestDetails.telegramNick);
+    payload.append("rentalDuration", requestDetails.rentalDuration);
+    payload.append("leadType", "Заявка на аренду");
+    payload.append("source", "Niko Travel rental request form");
     payload.append("submittedAt", new Date().toISOString());
     payload.append("message", message);
 
@@ -1003,14 +822,14 @@ function getRentalById(rentalId) {
   return state.rentals.find((item) => item.id === rentalId);
 }
 
-function selectRental(rentalId, scrollToForm = false) {
-  state.selectedRentalId = rentalId;
-  refs.rentalSelect.value = rentalId;
-  updateRentalTotalPrice();
+function buildExcursionPagePath(excursion) {
+  const slug = excursion?.slug || excursion?.id;
+  return `/excursions/${slug}.html`;
+}
 
-  if (scrollToForm) {
-    document.querySelector("#rental-request").scrollIntoView({ behavior: "smooth", block: "start" });
-  }
+function buildRentalPagePath(rental) {
+  const slug = rental?.slug || rental?.id;
+  return `/rental/${slug}.html`;
 }
 
 function syncRentalRangeConstraints() {
@@ -1160,7 +979,6 @@ function setupDeferredRentalState() {
 function setRentalControlsEnabled(isEnabled) {
   refs.rentalSearchInput.disabled = !isEnabled;
   refs.rentalTagFilter.disabled = !isEnabled;
-  refs.rentalSelect.disabled = !isEnabled;
 }
 
 function setupRentalLazyLoading() {
@@ -1196,11 +1014,9 @@ function applyRentalsData(rentalsData) {
   }));
   state.filteredRentals = [...state.rentals];
   populateRentalTagFilter();
-  populateRentalSelect();
   refs.rentalCardsGrid.classList.remove("is-pending");
   renderRentalCards(state.filteredRentals);
   setRentalControlsEnabled(true);
-  updateRentalTotalPrice();
 }
 
 async function ensureRentalsLoaded() {
