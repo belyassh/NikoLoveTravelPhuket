@@ -145,6 +145,9 @@ function pageTemplate({ title, description, canonicalPath, body, jsonLd }) {
       .seo-breadcrumbs a { color: var(--brand); }
       .seo-back { margin-top: 1rem; display: inline-block; }
       .muted { opacity: 0.85; }
+      .seo-request-wrap {
+        margin-top: 1rem;
+      }
       .seo-hero-image {
         border: 1px solid var(--line);
         border-radius: var(--radius-md);
@@ -200,6 +203,52 @@ function pageTemplate({ title, description, canonicalPath, body, jsonLd }) {
         <p class="seo-back"><a href="/index.html">Вернуться на главную Niko Phuket</a></p>
       </section>
     </main>
+
+    <footer class="site-footer" id="contacts">
+      <div class="footer-grid">
+        <section class="footer-block footer-brand" aria-label="О компании Niko Phuket">
+          <a class="brand footer-logo" href="/index.html" aria-label="На главную Niko Phuket">
+            <img class="brand-mark" src="/image.png" alt="Логотип Niko Phuket" loading="lazy" decoding="async" />
+            <span class="brand-text">Niko Phuket</span>
+          </a>
+          <p class="footer-mission">Создаем маршруты и моменты, которые остаются с вами надолго.</p>
+          <p class="footer-hours">Поддержка: ежедневно 09:00-21:00</p>
+        </section>
+
+        <nav class="footer-block" aria-label="Разделы сайта">
+          <h3>Разделы</h3>
+          <a href="/excursions/index.html">Все экскурсии</a>
+          <a href="/rental/index.html">Аренда</a>
+          <a href="/services/index.html">Услуги</a>
+          <a href="/index.html#faq">FAQ</a>
+        </nav>
+
+        <section class="footer-block" aria-label="Документы">
+          <h3>Документы</h3>
+          <a href="/privacy.html">Политика конфиденциальности</a>
+          <a href="/refund-policy.html">Условия возврата</a>
+        </section>
+
+        <section class="footer-block" aria-label="Контакты">
+          <h3>Контакты</h3>
+          <a href="https://t.me/hitachi315" target="_blank" rel="noreferrer">Менеджер в Telegram</a>
+          <div class="footer-socials">
+            <a href="https://t.me/hitachi315" target="_blank" rel="noreferrer">Telegram</a>
+            <a href="https://instagram.com" target="_blank" rel="noreferrer">Instagram</a>
+            <a href="https://youtube.com" target="_blank" rel="noreferrer">YouTube</a>
+          </div>
+        </section>
+      </div>
+
+      <div class="footer-bottom">
+        <p>© 2026 Niko Phuket. Все права защищены.</p>
+        <div class="payment-methods" aria-label="Доступные способы оплаты">
+          <span>Visa</span>
+          <span>Mastercard</span>
+          <span>Mir</span>
+        </div>
+      </div>
+    </footer>
   </body>
 </html>`;
 }
@@ -280,15 +329,15 @@ function renderProductRequestForm({ type, itemTitle, endpoint }) {
   const source = type === "rental" ? "Niko Phuket rental product page" : "Niko Phuket excursion product page";
 
   if (!endpoint) {
-    return `<section class="request" id="request">
+    return `<div class="seo-request-wrap"><section class="request" id="request">
       <div class="section-head">
         <h2>${type === "rental" ? "Запрос по аренде" : "Запрос по экскурсии"}</h2>
         <p>Для отправки запроса напишите менеджеру в Telegram через кнопку в шапке или на главной странице.</p>
       </div>
-    </section>`;
+      </section></div>`;
   }
 
-  return `<section class="request" id="request">
+    return `<div class="seo-request-wrap"><section class="request" id="request">
       <div class="section-head">
         <h2>${type === "rental" ? "Запрос по аренде" : "Запрос по экскурсии"}</h2>
         <p>Заполните форму: менеджер свяжется с вами для подтверждения деталей.</p>
@@ -306,7 +355,7 @@ function renderProductRequestForm({ type, itemTitle, endpoint }) {
           <button class="btn btn-primary" type="submit">Отправить запрос</button>
         </div>
       </form>
-    </section>`;
+    </section></div>`;
 }
 
 function excursionDetailPage(item, endpoint) {
