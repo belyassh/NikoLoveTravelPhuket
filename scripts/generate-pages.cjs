@@ -143,7 +143,7 @@ function pageTemplate({ title, description, canonicalPath, body, jsonLd }) {
       .seo-list { margin: 0.7rem 0 0; padding-left: 1.1rem; }
       .seo-breadcrumbs { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 1rem; }
       .seo-breadcrumbs a { color: var(--brand); }
-      .seo-back { margin-top: 1rem; display: inline-block; }
+      .seo-back-top { margin-bottom: 0.9rem; }
       .muted { opacity: 0.85; }
       .seo-request-wrap {
         margin-top: 1rem;
@@ -199,8 +199,8 @@ function pageTemplate({ title, description, canonicalPath, body, jsonLd }) {
 
     <main class="seo-main">
       <section class="seo-page">
+        <p class="seo-back-top"><a class="btn btn-ghost" href="/index.html">← Назад</a></p>
         ${body}
-        <p class="seo-back"><a href="/index.html">Вернуться на главную Niko Phuket</a></p>
       </section>
     </main>
 
