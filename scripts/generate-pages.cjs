@@ -138,9 +138,15 @@ function pageTemplate({ title, description, canonicalPath, body, jsonLd }) {
         flex-wrap: wrap;
         gap: 0.6rem;
       }
-      .seo-grid { display: grid; gap: 1.5rem; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); margin-bottom: 1.5rem; align-items: stretch; }
+      .seo-grid { display: grid; gap: 1.5rem; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); margin-bottom: 1.5rem; align-items: stretch; }
       .seo-grid .seo-card { display: flex; flex-direction: column; height: 100%; }
       .seo-card { border: 1px solid var(--line); border-radius: var(--radius-md); padding: 1.2rem; background: var(--surface); margin-bottom: 1.5rem; }
+      @media (min-width: 1401px) {
+        .seo-grid { grid-template-columns: repeat(3, 1fr); }
+      }
+      @media (max-width: 768px) {
+        .seo-grid { grid-template-columns: 1fr; }
+      }
       .seo-card ul { flex: 1; }
       .seo-card:last-child { margin-bottom: 0; }
       .seo-card-price { background: rgba(12, 122, 109, 0.05); border-left: 4px solid var(--brand); }
