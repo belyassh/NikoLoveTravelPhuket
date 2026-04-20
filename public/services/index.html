@@ -58,10 +58,26 @@
         flex-wrap: wrap;
         gap: 0.6rem;
       }
-      .seo-grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
-      .seo-card { border: 1px solid var(--line); border-radius: var(--radius-md); padding: 1rem; background: var(--surface); }
-      .seo-card h2, .seo-card h3 { margin-top: 0; }
+      .seo-grid { display: grid; gap: 1.5rem; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); margin-bottom: 1.5rem; align-items: stretch; }
+      .seo-grid .seo-card { display: flex; flex-direction: column; height: 100%; }
+      .seo-card { border: 1px solid var(--line); border-radius: var(--radius-md); padding: 1.2rem; background: var(--surface); margin-bottom: 1.5rem; }
+      .seo-card ul { flex: 1; }
+      .seo-card:last-child { margin-bottom: 0; }
+      .seo-card-price { background: rgba(12, 122, 109, 0.05); border-left: 4px solid var(--brand); }
+      .seo-price-big { font-size: 1.4rem; color: var(--brand); margin: 0; }
+      .seo-card h2 { margin: 0 0 0.9rem 0; font-size: 1.1rem; }
+      .seo-card h3 { margin: 0.9rem 0 0.6rem 0; }
+      .seo-card p { margin-bottom: 0; }
+      .seo-card ul { margin: 0; padding-left: 1.3rem; }
+      .seo-card li { margin-bottom: 0.5rem; }
+      .seo-card li:last-child { margin-bottom: 0; }
       .seo-list { margin: 0.7rem 0 0; padding-left: 1.1rem; }
+      .seo-meta-list { margin: 0.7rem 0 0; padding-left: 1.1rem; list-style: none; }
+      .seo-meta-list li { margin-bottom: 0.5rem; }
+      .seo-itinerary { margin-top: 0.9rem; display: flex; flex-direction: column; gap: 0.6rem; }
+      .itinerary-step { display: flex; gap: 0.8rem; padding: 0.6rem; background: var(--bg); border-radius: var(--radius-sm); align-items: flex-start; }
+      .itinerary-time { min-width: 60px; font-weight: 600; color: var(--brand); font-size: 0.9rem; }
+      .itinerary-activity { flex: 1; font-size: 0.9rem; }
       .seo-breadcrumbs { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 1rem; }
       .seo-breadcrumbs a { color: var(--brand); }
       .seo-back-top { margin-bottom: 0.9rem; }
@@ -110,8 +126,7 @@
         <span class="brand-text">Niko Phuket</span>
       </a>
       <nav class="seo-header-links" aria-label="SEO разделы">
-        <a href="/excursions/sea.html">Морские</a>
-        <a href="/excursions/land.html">Наземные</a>
+        <a href="/excursions/index.html">Экскурсии</a>
         <a href="/rental/index.html">Аренда</a>
         <a href="/services/index.html">Услуги</a>
       </nav>
@@ -130,18 +145,62 @@
       <h1>Дополнительные услуги на Пхукете</h1>
       <p>Собрали популярные сервисы, которые чаще всего нужны гостям острова.</p>
     </section>
-    <section class="seo-grid"><article class="seo-card">
-      <h2><a href="/services/fast-track.html">Fast Track на Пхукете</a></h2>
-      <p>Категория дополнительных услуг: Fast Track.</p>
-    </article>
-<article class="seo-card">
-      <h2><a href="/services/border-run.html">Border Run на Пхукете</a></h2>
-      <p>Категория дополнительных услуг: Border Run.</p>
-    </article>
-<article class="seo-card">
-      <h2><a href="/services/transfer.html">Трансферы на Пхукете</a></h2>
-      <p>Категория дополнительных услуг: Трансферы.</p>
-    </article></section>
+    <section class="seo-grid"><article class="tour-card">
+    <img class="tour-card-image" src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&amp;fit=crop&amp;w=1200&amp;q=80" alt="Fast Track в аэропорту Пхукета (прилет)" loading="lazy" decoding="async" />
+    <div class="tour-card-body">
+      <h3 class="tour-card-title">Fast Track в аэропорту Пхукета (прилет)</h3>
+      <p class="tour-card-overview">Ускоренное прохождение формальностей в аэропорту и сопровождение до зоны выдачи багажа.</p>
+      <div class="tour-card-foot">
+        <p class="tour-card-price">Стоимость: 1925 THB за человека</p>
+        <div class="tour-card-actions">
+          <a class="btn btn-small btn-ghost" href="/services/fast-track-arrival-phuket.html">Подробнее</a>
+          <a class="btn btn-small btn-primary" href="/services/fast-track-arrival-phuket.html#request">Запросить</a>
+        </div>
+      </div>
+    </div>
+  </article>
+<article class="tour-card">
+    <img class="tour-card-image" src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&amp;fit=crop&amp;w=1200&amp;q=80" alt="Fast Track в аэропорту Пхукета (вылет)" loading="lazy" decoding="async" />
+    <div class="tour-card-body">
+      <h3 class="tour-card-title">Fast Track в аэропорту Пхукета (вылет)</h3>
+      <p class="tour-card-overview">Быстрое прохождение контроля на вылете и приоритетное сопровождение.</p>
+      <div class="tour-card-foot">
+        <p class="tour-card-price">Стоимость: 1715 THB за человека</p>
+        <div class="tour-card-actions">
+          <a class="btn btn-small btn-ghost" href="/services/fast-track-departure-phuket.html">Подробнее</a>
+          <a class="btn btn-small btn-primary" href="/services/fast-track-departure-phuket.html#request">Запросить</a>
+        </div>
+      </div>
+    </div>
+  </article>
+<article class="tour-card">
+    <img class="tour-card-image" src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&amp;fit=crop&amp;w=1200&amp;q=80" alt="Border Run на 1 день" loading="lazy" decoding="async" />
+    <div class="tour-card-body">
+      <h3 class="tour-card-title">Border Run на 1 день</h3>
+      <p class="tour-card-overview">Организованный выезд для визового обновления с трансфером и поддержкой координатора.</p>
+      <div class="tour-card-foot">
+        <p class="tour-card-price">Стоимость: 4200 THB за человека</p>
+        <div class="tour-card-actions">
+          <a class="btn btn-small btn-ghost" href="/services/border-run-same-day.html">Подробнее</a>
+          <a class="btn btn-small btn-primary" href="/services/border-run-same-day.html#request">Запросить</a>
+        </div>
+      </div>
+    </div>
+  </article>
+<article class="tour-card">
+    <img class="tour-card-image" src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&amp;fit=crop&amp;w=1200&amp;q=80" alt="Индивидуальный трансфер по Пхукету" loading="lazy" decoding="async" />
+    <div class="tour-card-body">
+      <h3 class="tour-card-title">Индивидуальный трансфер по Пхукету</h3>
+      <p class="tour-card-overview">Трансфер аэропорт-отель и поездки по острову на комфортном авто.</p>
+      <div class="tour-card-foot">
+        <p class="tour-card-price">Стоимость: 1225 THB за поездку</p>
+        <div class="tour-card-actions">
+          <a class="btn btn-small btn-ghost" href="/services/private-transfer-phuket.html">Подробнее</a>
+          <a class="btn btn-small btn-primary" href="/services/private-transfer-phuket.html#request">Запросить</a>
+        </div>
+      </div>
+    </div>
+  </article></section>
       </section>
     </main>
 

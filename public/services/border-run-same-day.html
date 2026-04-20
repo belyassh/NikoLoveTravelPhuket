@@ -58,10 +58,26 @@
         flex-wrap: wrap;
         gap: 0.6rem;
       }
-      .seo-grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
-      .seo-card { border: 1px solid var(--line); border-radius: var(--radius-md); padding: 1rem; background: var(--surface); }
-      .seo-card h2, .seo-card h3 { margin-top: 0; }
+      .seo-grid { display: grid; gap: 1.5rem; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); margin-bottom: 1.5rem; align-items: stretch; }
+      .seo-grid .seo-card { display: flex; flex-direction: column; height: 100%; }
+      .seo-card { border: 1px solid var(--line); border-radius: var(--radius-md); padding: 1.2rem; background: var(--surface); margin-bottom: 1.5rem; }
+      .seo-card ul { flex: 1; }
+      .seo-card:last-child { margin-bottom: 0; }
+      .seo-card-price { background: rgba(12, 122, 109, 0.05); border-left: 4px solid var(--brand); }
+      .seo-price-big { font-size: 1.4rem; color: var(--brand); margin: 0; }
+      .seo-card h2 { margin: 0 0 0.9rem 0; font-size: 1.1rem; }
+      .seo-card h3 { margin: 0.9rem 0 0.6rem 0; }
+      .seo-card p { margin-bottom: 0; }
+      .seo-card ul { margin: 0; padding-left: 1.3rem; }
+      .seo-card li { margin-bottom: 0.5rem; }
+      .seo-card li:last-child { margin-bottom: 0; }
       .seo-list { margin: 0.7rem 0 0; padding-left: 1.1rem; }
+      .seo-meta-list { margin: 0.7rem 0 0; padding-left: 1.1rem; list-style: none; }
+      .seo-meta-list li { margin-bottom: 0.5rem; }
+      .seo-itinerary { margin-top: 0.9rem; display: flex; flex-direction: column; gap: 0.6rem; }
+      .itinerary-step { display: flex; gap: 0.8rem; padding: 0.6rem; background: var(--bg); border-radius: var(--radius-sm); align-items: flex-start; }
+      .itinerary-time { min-width: 60px; font-weight: 600; color: var(--brand); font-size: 0.9rem; }
+      .itinerary-activity { flex: 1; font-size: 0.9rem; }
       .seo-breadcrumbs { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 1rem; }
       .seo-breadcrumbs a { color: var(--brand); }
       .seo-back-top { margin-bottom: 0.9rem; }
@@ -95,7 +111,7 @@
         }
       }
     </style>
-    <script type="application/ld+json">{"@context":"https://schema.org","@type":"Service","name":"Border Run на 1 день","description":"Организованный выезд для визового обновления с трансфером и поддержкой координатора.","provider":{"@type":"TravelAgency","name":"Niko Phuket","url":"https://nikophuket.com"},"areaServed":{"@type":"Place","name":"Phuket, Thailand"},"offers":{"@type":"Offer","price":120,"priceCurrency":"USD","url":"https://nikophuket.com/services/border-run-same-day.html"}}</script>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"Service","name":"Border Run на 1 день","description":"Организованный выезд для визового обновления с трансфером и поддержкой координатора.","provider":{"@type":"TravelAgency","name":"Niko Phuket","url":"https://nikophuket.com"},"areaServed":{"@type":"Place","name":"Phuket, Thailand"},"offers":{"@type":"Offer","price":4200,"priceCurrency":"THB","url":"https://nikophuket.com/services/border-run-same-day.html"}}</script>
   </head>
   <body>
     <div class="bg-shapes" aria-hidden="true">
@@ -110,8 +126,7 @@
         <span class="brand-text">Niko Phuket</span>
       </a>
       <nav class="seo-header-links" aria-label="SEO разделы">
-        <a href="/excursions/sea.html">Морские</a>
-        <a href="/excursions/land.html">Наземные</a>
+        <a href="/excursions/index.html">Экскурсии</a>
         <a href="/rental/index.html">Аренда</a>
         <a href="/services/index.html">Услуги</a>
       </nav>
@@ -126,19 +141,34 @@
       <span>/</span>
       <a href="/services/index.html">Услуги</a>
       <span>/</span>
-      <a href="/services/border-run.html">Border Run</a>
-      <span>/</span>
       <span>Border Run на 1 день</span>
     </nav>
     <section class="seo-head">
       <h1>Border Run на 1 день</h1>
       <p>Организованный выезд для визового обновления с трансфером и поддержкой координатора.</p>
-      <p><strong>Стоимость от:</strong> 120 USD за человека</p>
     </section>
+    <section class="seo-card seo-card-price">
+        <h2>💰 Стоимость</h2>
+        <p class="seo-price-big"><strong>4200 THB за человека</strong></p>
+      </section>
     <section class="seo-card">
-      <h2>Описание услуги</h2>
+        <h2>⏱️ Информация</h2>
+        <ul class="seo-meta-list">
+          <li><strong>Длительность:</strong> 12-14 часов</li>
+        </ul>
+      </section>
+    <section class="seo-card">
+      <h2>📝 Описание услуги</h2>
       <p>Формат однодневной поездки с заранее согласованной логистикой. Перед бронированием уточняем требования по гражданству и документам.</p>
     </section>
+    <section class="seo-card">
+        <h2>✅ Что входит</h2>
+        <ul class="seo-list"><li>Трансфер из отеля и обратно</li><li>Групповой координатор весь день</li><li>Помощь с документами и заполнением форм</li><li>Обед и питьевая вода</li><li>Страховка 100 000 THB</li></ul>
+      </section>
+    <section class="seo-card">
+        <h2>📌 Важно знать</h2>
+        <p>Требуется загранпаспорт и оригинал TM.30. Граждане РФ нужна дополнительная справка. Всё оформляется за 3-5 дней до выезда. Возврат 50% если отмена за 24 часа.</p>
+      </section>
       </section>
     </main>
 

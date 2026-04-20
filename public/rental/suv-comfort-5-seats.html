@@ -58,10 +58,26 @@
         flex-wrap: wrap;
         gap: 0.6rem;
       }
-      .seo-grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
-      .seo-card { border: 1px solid var(--line); border-radius: var(--radius-md); padding: 1rem; background: var(--surface); }
-      .seo-card h2, .seo-card h3 { margin-top: 0; }
+      .seo-grid { display: grid; gap: 1.5rem; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); margin-bottom: 1.5rem; align-items: stretch; }
+      .seo-grid .seo-card { display: flex; flex-direction: column; height: 100%; }
+      .seo-card { border: 1px solid var(--line); border-radius: var(--radius-md); padding: 1.2rem; background: var(--surface); margin-bottom: 1.5rem; }
+      .seo-card ul { flex: 1; }
+      .seo-card:last-child { margin-bottom: 0; }
+      .seo-card-price { background: rgba(12, 122, 109, 0.05); border-left: 4px solid var(--brand); }
+      .seo-price-big { font-size: 1.4rem; color: var(--brand); margin: 0; }
+      .seo-card h2 { margin: 0 0 0.9rem 0; font-size: 1.1rem; }
+      .seo-card h3 { margin: 0.9rem 0 0.6rem 0; }
+      .seo-card p { margin-bottom: 0; }
+      .seo-card ul { margin: 0; padding-left: 1.3rem; }
+      .seo-card li { margin-bottom: 0.5rem; }
+      .seo-card li:last-child { margin-bottom: 0; }
       .seo-list { margin: 0.7rem 0 0; padding-left: 1.1rem; }
+      .seo-meta-list { margin: 0.7rem 0 0; padding-left: 1.1rem; list-style: none; }
+      .seo-meta-list li { margin-bottom: 0.5rem; }
+      .seo-itinerary { margin-top: 0.9rem; display: flex; flex-direction: column; gap: 0.6rem; }
+      .itinerary-step { display: flex; gap: 0.8rem; padding: 0.6rem; background: var(--bg); border-radius: var(--radius-sm); align-items: flex-start; }
+      .itinerary-time { min-width: 60px; font-weight: 600; color: var(--brand); font-size: 0.9rem; }
+      .itinerary-activity { flex: 1; font-size: 0.9rem; }
       .seo-breadcrumbs { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 1rem; }
       .seo-breadcrumbs a { color: var(--brand); }
       .seo-back-top { margin-bottom: 0.9rem; }
@@ -95,7 +111,7 @@
         }
       }
     </style>
-    <script type="application/ld+json">{"@context":"https://schema.org","@type":"Product","name":"SUV Comfort 5 мест","description":"Просторный автомобиль для семьи и выездов за город.","offers":{"@type":"Offer","price":68,"priceCurrency":"USD","availability":"https://schema.org/InStock","url":"https://nikophuket.com/rental/suv-comfort-5-seats.html"},"brand":{"@type":"Organization","name":"Niko Phuket"}}</script>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"Product","name":"SUV Comfort 5 мест","description":"Просторный автомобиль для семьи и выездов за город.","offers":{"@type":"Offer","price":2380,"priceCurrency":"THB","availability":"https://schema.org/InStock","url":"https://nikophuket.com/rental/suv-comfort-5-seats.html"},"brand":{"@type":"Organization","name":"Niko Phuket"}}</script>
   </head>
   <body>
     <div class="bg-shapes" aria-hidden="true">
@@ -110,8 +126,7 @@
         <span class="brand-text">Niko Phuket</span>
       </a>
       <nav class="seo-header-links" aria-label="SEO разделы">
-        <a href="/excursions/sea.html">Морские</a>
-        <a href="/excursions/land.html">Наземные</a>
+        <a href="/excursions/index.html">Экскурсии</a>
         <a href="/rental/index.html">Аренда</a>
         <a href="/services/index.html">Услуги</a>
       </nav>
@@ -127,24 +142,41 @@
       <span>/</span>
       <a href="/rental/index.html">Аренда</a>
       <span>/</span>
-      <a href="/rental/auto-moto.html">Аренда авто и мото</a>
-      <span>/</span>
       <span>SUV Comfort 5 мест</span>
     </nav>
     <section class="seo-head">
       <h1>SUV Comfort 5 мест</h1>
       <p>Просторный автомобиль для семьи и выездов за город.</p>
-      <p><strong>Стоимость от:</strong> 68 USD в день</p>
-      <p><strong>Депозит:</strong> 350 USD</p>
+      <p><strong>Депозит:</strong> 12250 THB</p>
+    </section>
+    <section class="seo-card seo-card-price">
+        <h2>💰 Тарифы</h2>
+        <ul class="seo-list">
+          <li>День: 2380 THB</li>
+          <li>Неделя: 13650 THB</li>
+          <li>Месяц: 46200 THB</li>
+        </ul>
+      </section>
+    <section class="seo-card">
+        <h2>📋 Характеристики</h2>
+        <ul class="seo-meta-list">
+          <li><strong>Спецификация:</strong> 2.4L | 5 мест | МКПП/Автомат | Мах. скорость 180 км/ч</li>
+          <li><strong>Топливо:</strong> Бензин (8-10 литров на 100 км)</li>
+          
+        </ul>
+      </section>
+    <section class="seo-card">
+      <h2>✅ Что входит</h2>
+      <ul class="seo-list"><li>Страховка ОСАГО с полным покрытием</li><li>Безлимитный пробег в городе и провинции</li><li>Техническая поддержка 24/7</li><li>Бесплатное топливо на 100 км</li></ul>
     </section>
     <section class="seo-card">
-      <h2>Тарифы</h2>
-      <ul class="seo-list">
-        <li>День: 68 USD</li>
-        <li>Неделя: 390 USD</li>
-        <li>Месяц: 1320 USD</li>
-      </ul>
-    </section>
+        <h2>⚠️ Требования и условия</h2>
+        <ul class="seo-list"><li>Международные права с категорией B (от 18 лет и выше)</li><li>Паспорт (как залог)</li><li>Подтверждение возраста и опыта вождения</li></ul>
+      </section>
+    <section class="seo-card">
+        <h2>📌 Важные примечания</h2>
+        <p>Парковку оплачивают отдельно. Штраф за превышение скорости 500-1000 THB. Мотоциклы не входят в страховку. Рекомендуется GPS-навигатор (50 THB/день).</p>
+      </section>
     <div class="seo-request-wrap"><section class="request" id="request">
       <div class="section-head">
         <h2>Запрос по аренде</h2>

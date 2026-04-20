@@ -58,10 +58,26 @@
         flex-wrap: wrap;
         gap: 0.6rem;
       }
-      .seo-grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
-      .seo-card { border: 1px solid var(--line); border-radius: var(--radius-md); padding: 1rem; background: var(--surface); }
-      .seo-card h2, .seo-card h3 { margin-top: 0; }
+      .seo-grid { display: grid; gap: 1.5rem; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); margin-bottom: 1.5rem; align-items: stretch; }
+      .seo-grid .seo-card { display: flex; flex-direction: column; height: 100%; }
+      .seo-card { border: 1px solid var(--line); border-radius: var(--radius-md); padding: 1.2rem; background: var(--surface); margin-bottom: 1.5rem; }
+      .seo-card ul { flex: 1; }
+      .seo-card:last-child { margin-bottom: 0; }
+      .seo-card-price { background: rgba(12, 122, 109, 0.05); border-left: 4px solid var(--brand); }
+      .seo-price-big { font-size: 1.4rem; color: var(--brand); margin: 0; }
+      .seo-card h2 { margin: 0 0 0.9rem 0; font-size: 1.1rem; }
+      .seo-card h3 { margin: 0.9rem 0 0.6rem 0; }
+      .seo-card p { margin-bottom: 0; }
+      .seo-card ul { margin: 0; padding-left: 1.3rem; }
+      .seo-card li { margin-bottom: 0.5rem; }
+      .seo-card li:last-child { margin-bottom: 0; }
       .seo-list { margin: 0.7rem 0 0; padding-left: 1.1rem; }
+      .seo-meta-list { margin: 0.7rem 0 0; padding-left: 1.1rem; list-style: none; }
+      .seo-meta-list li { margin-bottom: 0.5rem; }
+      .seo-itinerary { margin-top: 0.9rem; display: flex; flex-direction: column; gap: 0.6rem; }
+      .itinerary-step { display: flex; gap: 0.8rem; padding: 0.6rem; background: var(--bg); border-radius: var(--radius-sm); align-items: flex-start; }
+      .itinerary-time { min-width: 60px; font-weight: 600; color: var(--brand); font-size: 0.9rem; }
+      .itinerary-activity { flex: 1; font-size: 0.9rem; }
       .seo-breadcrumbs { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 1rem; }
       .seo-breadcrumbs a { color: var(--brand); }
       .seo-back-top { margin-bottom: 0.9rem; }
@@ -95,7 +111,7 @@
         }
       }
     </style>
-    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TouristTrip","name":"Залив Джеймса Бонда и Пханг Нга","description":"Известняковые скалы, пещеры и прогулка на каноэ по лагунам.","touristType":"Туристы на Пхукете","offers":{"@type":"Offer","price":72,"priceCurrency":"USD","url":"https://nikophuket.com/excursions/james-bond-phang-nga.html"},"provider":{"@type":"TravelAgency","name":"Niko Phuket","url":"https://nikophuket.com"}}</script>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TouristTrip","name":"Залив Джеймса Бонда и Пханг Нга","description":"Известняковые скалы, пещеры и прогулка на каноэ по лагунам.","duration":"8-10 часов","touristType":"Туристы на Пхукете","offers":{"@type":"Offer","price":2520,"priceCurrency":"THB","url":"https://nikophuket.com/excursions/james-bond-phang-nga.html"},"provider":{"@type":"TravelAgency","name":"Niko Phuket","url":"https://nikophuket.com"}}</script>
   </head>
   <body>
     <div class="bg-shapes" aria-hidden="true">
@@ -110,8 +126,7 @@
         <span class="brand-text">Niko Phuket</span>
       </a>
       <nav class="seo-header-links" aria-label="SEO разделы">
-        <a href="/excursions/sea.html">Морские</a>
-        <a href="/excursions/land.html">Наземные</a>
+        <a href="/excursions/index.html">Экскурсии</a>
         <a href="/rental/index.html">Аренда</a>
         <a href="/services/index.html">Услуги</a>
       </nav>
@@ -125,25 +140,95 @@
     <nav class="seo-breadcrumbs" aria-label="Хлебные крошки">
       <a href="/index.html">Главная</a>
       <span>/</span>
-      <a href="/excursions/sea.html">Морские экскурсии</a>
+      <span>Экскурсии</span>
       <span>/</span>
       <span>Залив Джеймса Бонда и Пханг Нга</span>
     </nav>
     <section class="seo-head">
       <h1>Залив Джеймса Бонда и Пханг Нга</h1>
       <p>Известняковые скалы, пещеры и прогулка на каноэ по лагунам.</p>
-      <p><strong>Стоимость:</strong> 72 USD за человека</p>
     </section>
+    <section class="seo-card seo-card-price">
+        <h2>💰 Стоимость</h2>
+        <p class="seo-price-big"><strong>2520 THB за человека</strong></p>
+      </section>
+    <section class="seo-card">
+        <h2>ℹ️ Основная информация</h2>
+        <ul class="seo-meta-list">
+          <li><strong>Длительность:</strong> 8-10 часов</li>
+          <li><strong>Размер группы:</strong> 6-12 человек</li>
+          <li><strong>Сложность:</strong> легкий</li>
+        </ul>
+      </section>
+    <section class="seo-card">
+        <h2>📅 Расписание тура</h2>
+        <div class="seo-itinerary">
+          
+            <div class="itinerary-step">
+              <span class="itinerary-time">08:00</span>
+              <span class="itinerary-activity">Сбор из отеля и трансфер на пирс</span>
+            </div>
+          
+            <div class="itinerary-step">
+              <span class="itinerary-time">09:00</span>
+              <span class="itinerary-activity">Прибытие на пирс, инструктаж</span>
+            </div>
+          
+            <div class="itinerary-step">
+              <span class="itinerary-time">09:30</span>
+              <span class="itinerary-activity">Отправление на лодке в залив Пханг Нга</span>
+            </div>
+          
+            <div class="itinerary-step">
+              <span class="itinerary-time">11:00</span>
+              <span class="itinerary-activity">Прибытие к острову Джеймса Бонда (Khao Tapu)</span>
+            </div>
+          
+            <div class="itinerary-step">
+              <span class="itinerary-time">11:30</span>
+              <span class="itinerary-activity">Каякинг в lagoon и изучение пещер</span>
+            </div>
+          
+            <div class="itinerary-step">
+              <span class="itinerary-time">13:00</span>
+              <span class="itinerary-activity">Обед на берегу</span>
+            </div>
+          
+            <div class="itinerary-step">
+              <span class="itinerary-time">14:30</span>
+              <span class="itinerary-activity">Посещение Panyee Island (плавающая деревня)</span>
+            </div>
+          
+            <div class="itinerary-step">
+              <span class="itinerary-time">15:30</span>
+              <span class="itinerary-activity">Возвращение на лодке</span>
+            </div>
+          
+            <div class="itinerary-step">
+              <span class="itinerary-time">17:00</span>
+              <span class="itinerary-activity">Прибытие в отель</span>
+            </div>
+          
+        </div>
+      </section>
     <section class="seo-grid">
       <article class="seo-card">
-        <h2>Что входит</h2>
-        <ul class="seo-list"><li>Трансфер из отеля и обратно</li><li>Русскоязычный сопровождающий</li><li>Каноэ с местным гребцом</li><li>Обед и питьевая вода</li></ul>
+        <h2>✅ Что входит</h2>
+        <ul class="seo-list"><li>Трансфер из отеля и обратно</li><li>Русскоязычный сопровождающий</li><li>Каноэ с местным гребцом</li><li>Обед и питьевая вода</li><li>Спасательный жилет</li></ul>
       </article>
       <article class="seo-card">
-        <h2>Что взять с собой</h2>
-        <ul class="seo-list"><li>Головной убор</li><li>Солнцезащитный крем</li><li>Водонепроницаемый чехол для телефона</li><li>Легкая сменная одежда</li></ul>
+        <h2>🎒 Что взять с собой</h2>
+        <ul class="seo-list"><li>Головной убор (шляпа или кепка)</li><li>Солнцезащитный крем SPF 50+</li><li>Водонепроницаемый чехол для телефона</li><li>Легкая сменная одежда</li><li>Полотенце</li></ul>
       </article>
     </section>
+    <section class="seo-card">
+        <h2>⚠️ Требования и условия</h2>
+        <ul class="seo-list"><li>От 3 лет (дети на руках взрослых)</li><li>Умение плавать рекомендуется</li><li>Нет ограничений по физическая подготовке</li></ul>
+      </section>
+    <section class="seo-card">
+        <h2>📌 Важные примечания</h2>
+        <p>Спокойный маршрут. Не требует специальной подготовки. Рекомендуется для семей с детьми и новичков.</p>
+      </section>
     <div class="seo-request-wrap"><section class="request" id="request">
       <div class="section-head">
         <h2>Запрос по экскурсии</h2>

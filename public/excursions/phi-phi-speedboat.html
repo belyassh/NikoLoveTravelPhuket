@@ -58,10 +58,26 @@
         flex-wrap: wrap;
         gap: 0.6rem;
       }
-      .seo-grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
-      .seo-card { border: 1px solid var(--line); border-radius: var(--radius-md); padding: 1rem; background: var(--surface); }
-      .seo-card h2, .seo-card h3 { margin-top: 0; }
+      .seo-grid { display: grid; gap: 1.5rem; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); margin-bottom: 1.5rem; align-items: stretch; }
+      .seo-grid .seo-card { display: flex; flex-direction: column; height: 100%; }
+      .seo-card { border: 1px solid var(--line); border-radius: var(--radius-md); padding: 1.2rem; background: var(--surface); margin-bottom: 1.5rem; }
+      .seo-card ul { flex: 1; }
+      .seo-card:last-child { margin-bottom: 0; }
+      .seo-card-price { background: rgba(12, 122, 109, 0.05); border-left: 4px solid var(--brand); }
+      .seo-price-big { font-size: 1.4rem; color: var(--brand); margin: 0; }
+      .seo-card h2 { margin: 0 0 0.9rem 0; font-size: 1.1rem; }
+      .seo-card h3 { margin: 0.9rem 0 0.6rem 0; }
+      .seo-card p { margin-bottom: 0; }
+      .seo-card ul { margin: 0; padding-left: 1.3rem; }
+      .seo-card li { margin-bottom: 0.5rem; }
+      .seo-card li:last-child { margin-bottom: 0; }
       .seo-list { margin: 0.7rem 0 0; padding-left: 1.1rem; }
+      .seo-meta-list { margin: 0.7rem 0 0; padding-left: 1.1rem; list-style: none; }
+      .seo-meta-list li { margin-bottom: 0.5rem; }
+      .seo-itinerary { margin-top: 0.9rem; display: flex; flex-direction: column; gap: 0.6rem; }
+      .itinerary-step { display: flex; gap: 0.8rem; padding: 0.6rem; background: var(--bg); border-radius: var(--radius-sm); align-items: flex-start; }
+      .itinerary-time { min-width: 60px; font-weight: 600; color: var(--brand); font-size: 0.9rem; }
+      .itinerary-activity { flex: 1; font-size: 0.9rem; }
       .seo-breadcrumbs { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 1rem; }
       .seo-breadcrumbs a { color: var(--brand); }
       .seo-back-top { margin-bottom: 0.9rem; }
@@ -95,7 +111,7 @@
         }
       }
     </style>
-    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TouristTrip","name":"Острова Пхи-Пхи на скоростном катере","description":"Легендарные бухты, снорклинг и белоснежные пляжи за один день.","touristType":"Туристы на Пхукете","offers":{"@type":"Offer","price":78,"priceCurrency":"USD","url":"https://nikophuket.com/excursions/phi-phi-speedboat.html"},"provider":{"@type":"TravelAgency","name":"Niko Phuket","url":"https://nikophuket.com"}}</script>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"TouristTrip","name":"Острова Пхи-Пхи на скоростном катере","description":"Легендарные бухты, снорклинг и белоснежные пляжи за один день.","duration":"10-12 часов","touristType":"Туристы на Пхукете","offers":{"@type":"Offer","price":75000,"priceCurrency":"THB","url":"https://nikophuket.com/excursions/phi-phi-speedboat.html"},"provider":{"@type":"TravelAgency","name":"Niko Phuket","url":"https://nikophuket.com"}}</script>
   </head>
   <body>
     <div class="bg-shapes" aria-hidden="true">
@@ -110,8 +126,7 @@
         <span class="brand-text">Niko Phuket</span>
       </a>
       <nav class="seo-header-links" aria-label="SEO разделы">
-        <a href="/excursions/sea.html">Морские</a>
-        <a href="/excursions/land.html">Наземные</a>
+        <a href="/excursions/index.html">Экскурсии</a>
         <a href="/rental/index.html">Аренда</a>
         <a href="/services/index.html">Услуги</a>
       </nav>
@@ -125,25 +140,95 @@
     <nav class="seo-breadcrumbs" aria-label="Хлебные крошки">
       <a href="/index.html">Главная</a>
       <span>/</span>
-      <a href="/excursions/sea.html">Морские экскурсии</a>
+      <span>Экскурсии</span>
       <span>/</span>
       <span>Острова Пхи-Пхи на скоростном катере</span>
     </nav>
     <section class="seo-head">
       <h1>Острова Пхи-Пхи на скоростном катере</h1>
       <p>Легендарные бухты, снорклинг и белоснежные пляжи за один день.</p>
-      <p><strong>Стоимость:</strong> 78 USD за человека</p>
     </section>
+    <section class="seo-card seo-card-price">
+        <h2>💰 Стоимость</h2>
+        <p class="seo-price-big"><strong>75000 THB за человека</strong></p>
+      </section>
+    <section class="seo-card">
+        <h2>ℹ️ Основная информация</h2>
+        <ul class="seo-meta-list">
+          <li><strong>Длительность:</strong> 10-12 часов</li>
+          <li><strong>Размер группы:</strong> 8-15 человек</li>
+          <li><strong>Сложность:</strong> легкий</li>
+        </ul>
+      </section>
+    <section class="seo-card">
+        <h2>📅 Расписание тура</h2>
+        <div class="seo-itinerary">
+          
+            <div class="itinerary-step">
+              <span class="itinerary-time">07:00</span>
+              <span class="itinerary-activity">Сбор и трансфер из отеля на Пхукете</span>
+            </div>
+          
+            <div class="itinerary-step">
+              <span class="itinerary-time">08:30</span>
+              <span class="itinerary-activity">Прибытие на пирс. Инструктаж по безопасности</span>
+            </div>
+          
+            <div class="itinerary-step">
+              <span class="itinerary-time">09:00</span>
+              <span class="itinerary-activity">Отправление на скоростном катере</span>
+            </div>
+          
+            <div class="itinerary-step">
+              <span class="itinerary-time">10:30</span>
+              <span class="itinerary-activity">Прибытие к острову Maya Bay. Снорклинг и купание</span>
+            </div>
+          
+            <div class="itinerary-step">
+              <span class="itinerary-time">11:30</span>
+              <span class="itinerary-activity">Прибытие в Pileh Lagoon. Снорклинг и отдых</span>
+            </div>
+          
+            <div class="itinerary-step">
+              <span class="itinerary-time">13:00</span>
+              <span class="itinerary-activity">Обед на берегу острова Phi Phi Don</span>
+            </div>
+          
+            <div class="itinerary-step">
+              <span class="itinerary-time">14:30</span>
+              <span class="itinerary-activity">Свободное время для купания и фотографий</span>
+            </div>
+          
+            <div class="itinerary-step">
+              <span class="itinerary-time">15:30</span>
+              <span class="itinerary-activity">Возвращение в Phuket. Финальная остановка</span>
+            </div>
+          
+            <div class="itinerary-step">
+              <span class="itinerary-time">17:00-17:30</span>
+              <span class="itinerary-activity">Прибытие в отель</span>
+            </div>
+          
+        </div>
+      </section>
     <section class="seo-grid">
       <article class="seo-card">
-        <h2>Что входит</h2>
-        <ul class="seo-list"><li>Трансфер из отеля на Пхукете и обратно</li><li>Сопровождение русскоязычного гида</li><li>Снаряжение для снорклинга</li><li>Ланч и прохладительные напитки</li></ul>
+        <h2>✅ Что входит</h2>
+        <ul class="seo-list"><li>Трансфер из отеля на Пхукете и обратно</li><li>Сопровождение русскоязычного гида</li><li>Снаряжение для снорклинга (маска, трубка, ласты)</li><li>Ланч и прохладительные напитки</li><li>Спасательный жилет (обязательно)</li></ul>
       </article>
       <article class="seo-card">
-        <h2>Что взять с собой</h2>
-        <ul class="seo-list"><li>Купальные принадлежности</li><li>Крем от солнца</li><li>Полотенце</li><li>Наличные на личные расходы и сборы на пирсе</li></ul>
+        <h2>🎒 Что взять с собой</h2>
+        <ul class="seo-list"><li>Купальные принадлежности</li><li>Крем от солнца (не менее SPF 50)</li><li>Полотенце</li><li>Наличные на личные расходы и сборы на пирсе</li><li>Водонепроницаемая сумка для электроники</li></ul>
       </article>
     </section>
+    <section class="seo-card">
+        <h2>⚠️ Требования и условия</h2>
+        <ul class="seo-list"><li>Минимум 5 лет (дети с родителями)</li><li>Умение плавать обязательно</li><li>Хорошее физическое состояние</li><li>Нет противопоказаний к морской болезни</li></ul>
+      </section>
+    <section class="seo-card">
+        <h2>📌 Важные примечания</h2>
+        <p>Требуется умение плавать. Возможны качки на море. Не рекомендуется беременным и людям с проблемами спины.</p>
+      </section>
     <div class="seo-request-wrap"><section class="request" id="request">
       <div class="section-head">
         <h2>Запрос по экскурсии</h2>

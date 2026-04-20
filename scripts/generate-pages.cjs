@@ -138,10 +138,26 @@ function pageTemplate({ title, description, canonicalPath, body, jsonLd }) {
         flex-wrap: wrap;
         gap: 0.6rem;
       }
-      .seo-grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
-      .seo-card { border: 1px solid var(--line); border-radius: var(--radius-md); padding: 1rem; background: var(--surface); }
-      .seo-card h2, .seo-card h3 { margin-top: 0; }
+      .seo-grid { display: grid; gap: 1.5rem; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); margin-bottom: 1.5rem; align-items: stretch; }
+      .seo-grid .seo-card { display: flex; flex-direction: column; height: 100%; }
+      .seo-card { border: 1px solid var(--line); border-radius: var(--radius-md); padding: 1.2rem; background: var(--surface); margin-bottom: 1.5rem; }
+      .seo-card ul { flex: 1; }
+      .seo-card:last-child { margin-bottom: 0; }
+      .seo-card-price { background: rgba(12, 122, 109, 0.05); border-left: 4px solid var(--brand); }
+      .seo-price-big { font-size: 1.4rem; color: var(--brand); margin: 0; }
+      .seo-card h2 { margin: 0 0 0.9rem 0; font-size: 1.1rem; }
+      .seo-card h3 { margin: 0.9rem 0 0.6rem 0; }
+      .seo-card p { margin-bottom: 0; }
+      .seo-card ul { margin: 0; padding-left: 1.3rem; }
+      .seo-card li { margin-bottom: 0.5rem; }
+      .seo-card li:last-child { margin-bottom: 0; }
       .seo-list { margin: 0.7rem 0 0; padding-left: 1.1rem; }
+      .seo-meta-list { margin: 0.7rem 0 0; padding-left: 1.1rem; list-style: none; }
+      .seo-meta-list li { margin-bottom: 0.5rem; }
+      .seo-itinerary { margin-top: 0.9rem; display: flex; flex-direction: column; gap: 0.6rem; }
+      .itinerary-step { display: flex; gap: 0.8rem; padding: 0.6rem; background: var(--bg); border-radius: var(--radius-sm); align-items: flex-start; }
+      .itinerary-time { min-width: 60px; font-weight: 600; color: var(--brand); font-size: 0.9rem; }
+      .itinerary-activity { flex: 1; font-size: 0.9rem; }
       .seo-breadcrumbs { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 1rem; }
       .seo-breadcrumbs a { color: var(--brand); }
       .seo-back-top { margin-bottom: 0.9rem; }
@@ -190,8 +206,7 @@ function pageTemplate({ title, description, canonicalPath, body, jsonLd }) {
         <span class="brand-text">Niko Phuket</span>
       </a>
       <nav class="seo-header-links" aria-label="SEO разделы">
-        <a href="/excursions/sea.html">Морские</a>
-        <a href="/excursions/land.html">Наземные</a>
+        <a href="/excursions/index.html">Экскурсии</a>
         <a href="/rental/index.html">Аренда</a>
         <a href="/services/index.html">Услуги</a>
       </nav>
@@ -451,29 +466,83 @@ function excursionDetailPage(item, endpoint) {
   const description = item.overview || item.description || `Экскурсия ${item.title} на Пхукете`;
 
   const heroImage = getFirstImage(item);
+  
+  // Построение стоимости в отдельный блок
+  const priceBlockHtml = `<section class="seo-card seo-card-price">
+        <h2>💰 Стоимость</h2>
+        <p class="seo-price-big"><strong>${escapeHtml(item.priceLabel)}</strong></p>
+      </section>`;
+
+  // Построение расписания
+  const itineraryHtml = item.itinerary && item.itinerary.length > 0
+    ? `<section class="seo-card">
+        <h2>📅 Расписание тура</h2>
+        <div class="seo-itinerary">
+          ${item.itinerary.map((step) => `
+            <div class="itinerary-step">
+              <span class="itinerary-time">${escapeHtml(step.time)}</span>
+              <span class="itinerary-activity">${escapeHtml(step.activity)}</span>
+            </div>
+          `).join("")}
+        </div>
+      </section>`
+    : '';
+
+  // Построение метаинформации
+  const metaHtml = (item.duration || item.groupSize || item.difficulty)
+    ? `<section class="seo-card">
+        <h2>ℹ️ Основная информация</h2>
+        <ul class="seo-meta-list">
+          ${item.duration ? `<li><strong>Длительность:</strong> ${escapeHtml(item.duration)}</li>` : ''}
+          ${item.groupSize ? `<li><strong>Размер группы:</strong> ${escapeHtml(item.groupSize)}</li>` : ''}
+          ${item.difficulty ? `<li><strong>Сложность:</strong> ${escapeHtml(item.difficulty)}</li>` : ''}
+        </ul>
+      </section>`
+    : '';
+
+  // Построение требований
+  const requirementsHtml = item.requirements && item.requirements.length > 0
+    ? `<section class="seo-card">
+        <h2>⚠️ Требования и условия</h2>
+        <ul class="seo-list">${item.requirements.map((x) => `<li>${escapeHtml(x)}</li>`).join("")}</ul>
+      </section>`
+    : '';
+
+  // Построение примечаний
+  const notesHtml = item.notes
+    ? `<section class="seo-card">
+        <h2>📌 Важные примечания</h2>
+        <p>${escapeHtml(item.notes)}</p>
+      </section>`
+    : '';
+
   const body = `<div class="seo-hero-image"><img src="${escapeHtml(heroImage)}" alt="${escapeHtml(item.title)}" loading="eager" decoding="async" /></div>
     <nav class="seo-breadcrumbs" aria-label="Хлебные крошки">
       <a href="/index.html">Главная</a>
       <span>/</span>
-      <a href="/excursions/${item.category}.html">${CATEGORY_LABELS[item.category] || "Экскурсии"}</a>
+      <span>Экскурсии</span>
       <span>/</span>
       <span>${escapeHtml(item.title)}</span>
     </nav>
     <section class="seo-head">
       <h1>${escapeHtml(item.title)}</h1>
       <p>${escapeHtml(description)}</p>
-      <p><strong>Стоимость:</strong> ${escapeHtml(item.priceLabel)}</p>
     </section>
+    ${priceBlockHtml}
+    ${metaHtml}
+    ${itineraryHtml}
     <section class="seo-grid">
       <article class="seo-card">
-        <h2>Что входит</h2>
+        <h2>✅ Что входит</h2>
         <ul class="seo-list">${(item.included || []).map((x) => `<li>${escapeHtml(x)}</li>`).join("")}</ul>
       </article>
       <article class="seo-card">
-        <h2>Что взять с собой</h2>
+        <h2>🎒 Что взять с собой</h2>
         <ul class="seo-list">${(item.bring || []).map((x) => `<li>${escapeHtml(x)}</li>`).join("")}</ul>
       </article>
     </section>
+    ${requirementsHtml}
+    ${notesHtml}
     ${renderProductRequestForm({ type: "excursion", itemTitle: item.title, endpoint })}`;
 
   const jsonLd = {
@@ -481,11 +550,12 @@ function excursionDetailPage(item, endpoint) {
     "@type": "TouristTrip",
     name: item.title,
     description,
+    duration: item.duration || undefined,
     touristType: "Туристы на Пхукете",
     offers: {
       "@type": "Offer",
       price: item.price,
-      priceCurrency: "USD",
+      priceCurrency: "THB",
       url: `${SITE_URL}${urlPath}`
     },
     provider: {
@@ -505,30 +575,66 @@ function rentalDetailPage(item, endpoint) {
 
   const prices = item.prices || {};
   const heroImage = getFirstImage(item);
+  
+  // Построение стоимости в отдельный блок
+  const priceBlockHtml = `<section class="seo-card seo-card-price">
+        <h2>💰 Тарифы</h2>
+        <ul class="seo-list">
+          <li>День: ${escapeHtml(asPrice(prices.day, "", "THB"))}</li>
+          <li>Неделя: ${escapeHtml(asPrice(prices.week, "", "THB"))}</li>
+          <li>Месяц: ${escapeHtml(asPrice(prices.month, "", "THB"))}</li>
+        </ul>
+      </section>`;
+
+  // Построение спецификаций
+  const specsHtml = (item.specs || item.fuel || item.duration)
+    ? `<section class="seo-card">
+        <h2>📋 Характеристики</h2>
+        <ul class="seo-meta-list">
+          ${item.specs ? `<li><strong>Спецификация:</strong> ${escapeHtml(item.specs)}</li>` : ''}
+          ${item.fuel ? `<li><strong>Топливо:</strong> ${escapeHtml(item.fuel)}</li>` : ''}
+          ${item.duration ? `<li><strong>Длительность:</strong> ${escapeHtml(item.duration)}</li>` : ''}
+        </ul>
+      </section>`
+    : '';
+
+  // Построение требований
+  const requirementsHtml = item.requirements && item.requirements.length > 0
+    ? `<section class="seo-card">
+        <h2>⚠️ Требования и условия</h2>
+        <ul class="seo-list">${item.requirements.map((x) => `<li>${escapeHtml(x)}</li>`).join("")}</ul>
+      </section>`
+    : '';
+
+  // Построение примечаний
+  const notesHtml = item.notes
+    ? `<section class="seo-card">
+        <h2>📌 Важные примечания</h2>
+        <p>${escapeHtml(item.notes)}</p>
+      </section>`
+    : '';
+
   const body = `<div class="seo-hero-image"><img src="${escapeHtml(heroImage)}" alt="${escapeHtml(item.title)}" loading="eager" decoding="async" /></div>
     <nav class="seo-breadcrumbs" aria-label="Хлебные крошки">
       <a href="/index.html">Главная</a>
       <span>/</span>
       <a href="/rental/index.html">Аренда</a>
       <span>/</span>
-      <a href="/rental/${item.group}.html">${CATEGORY_LABELS[item.group] || "Категория аренды"}</a>
-      <span>/</span>
       <span>${escapeHtml(item.title)}</span>
     </nav>
     <section class="seo-head">
       <h1>${escapeHtml(item.title)}</h1>
       <p>${escapeHtml(description)}</p>
-      <p><strong>Стоимость от:</strong> ${escapeHtml(item.priceLabel)}</p>
       <p><strong>Депозит:</strong> ${escapeHtml(item.deposit || "По запросу")}</p>
     </section>
+    ${priceBlockHtml}
+    ${specsHtml}
     <section class="seo-card">
-      <h2>Тарифы</h2>
-      <ul class="seo-list">
-        <li>День: ${escapeHtml(asPrice(prices.day, "", "USD"))}</li>
-        <li>Неделя: ${escapeHtml(asPrice(prices.week, "", "USD"))}</li>
-        <li>Месяц: ${escapeHtml(asPrice(prices.month, "", "USD"))}</li>
-      </ul>
+      <h2>✅ Что входит</h2>
+      <ul class="seo-list">${(item.included || []).map((x) => `<li>${escapeHtml(x)}</li>`).join("")}</ul>
     </section>
+    ${requirementsHtml}
+    ${notesHtml}
     ${renderProductRequestForm({ type: "rental", itemTitle: item.title, endpoint })}`;
 
   const jsonLd = {
@@ -539,7 +645,7 @@ function rentalDetailPage(item, endpoint) {
     offers: {
       "@type": "Offer",
       price: prices.day || undefined,
-      priceCurrency: "USD",
+      priceCurrency: "THB",
       availability: "https://schema.org/InStock",
       url: `${SITE_URL}${urlPath}`
     },
@@ -557,24 +663,57 @@ function serviceDetailPage(item) {
   const title = `${item.title} | Услуги на Пхукете | Niko Phuket`;
   const description = item.overview || item.description || `Услуга ${item.title} на Пхукете`;
 
+  // Построение стоимости в отдельный блок
+  const priceBlockHtml = `<section class="seo-card seo-card-price">
+        <h2>💰 Стоимость</h2>
+        <p class="seo-price-big"><strong>${escapeHtml(item.priceLabel)}</strong></p>
+      </section>`;
+
+  // Построение информации
+  const infoHtml = item.duration
+    ? `<section class="seo-card">
+        <h2>⏱️ Информация</h2>
+        <ul class="seo-meta-list">
+          <li><strong>Длительность:</strong> ${escapeHtml(item.duration)}</li>
+        </ul>
+      </section>`
+    : '';
+
+  // Построение включённого
+  const includedHtml = item.included && item.included.length > 0
+    ? `<section class="seo-card">
+        <h2>✅ Что входит</h2>
+        <ul class="seo-list">${item.included.map((x) => `<li>${escapeHtml(x)}</li>`).join("")}</ul>
+      </section>`
+    : '';
+
+  // Построение примечаний
+  const notesHtml = item.notes
+    ? `<section class="seo-card">
+        <h2>📌 Важно знать</h2>
+        <p>${escapeHtml(item.notes)}</p>
+      </section>`
+    : '';
+
   const body = `<nav class="seo-breadcrumbs" aria-label="Хлебные крошки">
       <a href="/index.html">Главная</a>
       <span>/</span>
       <a href="/services/index.html">Услуги</a>
-      <span>/</span>
-      <a href="/services/${item.category}.html">${CATEGORY_LABELS[item.category] || "Другие услуги"}</a>
       <span>/</span>
       <span>${escapeHtml(item.title)}</span>
     </nav>
     <section class="seo-head">
       <h1>${escapeHtml(item.title)}</h1>
       <p>${escapeHtml(description)}</p>
-      <p><strong>Стоимость от:</strong> ${escapeHtml(item.priceLabel)}</p>
     </section>
+    ${priceBlockHtml}
+    ${infoHtml}
     <section class="seo-card">
-      <h2>Описание услуги</h2>
+      <h2>📝 Описание услуги</h2>
       <p>${escapeHtml(item.description || "")}</p>
-    </section>`;
+    </section>
+    ${includedHtml}
+    ${notesHtml}`;
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -593,7 +732,7 @@ function serviceDetailPage(item) {
     offers: {
       "@type": "Offer",
       price: item.priceFrom,
-      priceCurrency: "USD",
+      priceCurrency: "THB",
       url: `${SITE_URL}${urlPath}`
     }
   };
@@ -668,25 +807,12 @@ function excursionsIndexPage(excursionsByCategory) {
   return { path: urlPath, html: pageTemplate({ title, description, canonicalPath: urlPath, body, jsonLd }) };
 }
 
-function rentalIndexPage(rentalsByGroup) {
+function rentalIndexPage(rentals) {
   const urlPath = "/rental/index.html";
   const title = "Аренда на Пхукете: авто, мото, яхты и катамараны | Niko Phuket";
-  const description = "Отдельная страница аренды на Пхукете: авто/мото и яхты/катамараны с переходом в категории и карточки.";
+  const description = "Все предложения аренды на Пхукете: авто, мото, яхты и катамараны с подробной информацией.";
 
-  const groupCards = Object.entries(rentalsByGroup)
-    .map(([group, items]) => {
-      const groupTitle = CATEGORY_LABELS[group] || group;
-      const groupDescription = group === "auto-moto"
-        ? "Аренда автомобиля или скутера для самостоятельных поездок по острову."
-        : "Приватные и групповые морские форматы с капитаном.";
-
-      return `<article class="seo-card">
-        <h2><a href="/rental/${group}.html">${escapeHtml(groupTitle)}</a></h2>
-        <p>${escapeHtml(groupDescription)}</p>
-        <p class="muted">Доступно вариантов: ${items.length}</p>
-      </article>`;
-    })
-    .join("\n");
+  const cards = rentals.map((item) => cardMarkup(item, `/rental/${item.slug}.html`)).join("\n");
 
   const body = `<nav class="seo-breadcrumbs" aria-label="Хлебные крошки">
       <a href="/index.html">Главная</a>
@@ -695,9 +821,9 @@ function rentalIndexPage(rentalsByGroup) {
     </nav>
     <section class="seo-head">
       <h1>Аренда на Пхукете</h1>
-      <p>Выберите направление аренды: авто/мото для поездок по острову или яхты/катамараны для морского отдыха.</p>
+      <p>Полный каталог аренды: авто, мото, яхты и катамараны для вашего комфорта на острове.</p>
     </section>
-    <section class="seo-grid">${groupCards}</section>`;
+    <section class="seo-grid">${cards}</section>`;
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -710,15 +836,12 @@ function rentalIndexPage(rentalsByGroup) {
   return { path: urlPath, html: pageTemplate({ title, description, canonicalPath: urlPath, body, jsonLd }) };
 }
 
-function servicesIndexPage(categories) {
+function servicesIndexPage(services) {
   const urlPath = "/services/index.html";
   const title = "Дополнительные услуги на Пхукете: Fast Track, Border Run, трансферы | Niko Phuket";
   const description = "Сервисы для удобного отдыха на Пхукете: fast track, border run, трансферы и другие услуги.";
 
-  const cards = categories.map((category) => `<article class="seo-card">
-      <h2><a href="/services/${category.slug}.html">${escapeHtml(category.title)}</a></h2>
-      <p>${escapeHtml(category.description)}</p>
-    </article>`).join("\n");
+  const cards = services.map((item) => cardMarkup(item, `/services/${item.slug}.html`)).join("\n");
 
   const body = `<nav class="seo-breadcrumbs" aria-label="Хлебные крошки">
       <a href="/index.html">Главная</a>
@@ -783,24 +906,6 @@ function main() {
     return acc;
   }, {});
 
-  Object.entries(excursionsByCategory).forEach(([category, items]) => {
-    const heading = `${CATEGORY_LABELS[category] || "Экскурсии"} на Пхукете`;
-    const seoTitle = `${heading} | Niko Phuket`;
-    const description = `Подборка категории: ${CATEGORY_LABELS[category] || "экскурсии"} на Пхукете с ценами и деталями.`;
-    const page = categoryPage({
-      sectionPath: "excursions",
-      slug: category,
-      seoTitle,
-      heading,
-      description,
-      items,
-      itemPathBuilder: (item) => `/excursions/${item.slug}.html`
-    });
-
-    writeFile(path.join(PUBLIC_DIR, page.path), page.html);
-    generated.push(page.path);
-  });
-
   const excursionsIndex = excursionsIndexPage(excursionsByCategory);
   writeFile(path.join(PUBLIC_DIR, excursionsIndex.path), excursionsIndex.html);
   generated.push(excursionsIndex.path);
@@ -811,33 +916,9 @@ function main() {
     generated.push(page.path);
   });
 
-  const rentalsByGroup = rentals.reduce((acc, item) => {
-    acc[item.group] = acc[item.group] || [];
-    acc[item.group].push(item);
-    return acc;
-  }, {});
-
-  const rentalIndex = rentalIndexPage(rentalsByGroup);
+  const rentalIndex = rentalIndexPage(rentals);
   writeFile(path.join(PUBLIC_DIR, rentalIndex.path), rentalIndex.html);
   generated.push(rentalIndex.path);
-
-  Object.entries(rentalsByGroup).forEach(([group, items]) => {
-    const heading = `${CATEGORY_LABELS[group] || "Аренда"} на Пхукете`;
-    const seoTitle = `${heading} | Niko Phuket`;
-    const description = `Страница категории аренды: ${CATEGORY_LABELS[group] || "аренда"} на Пхукете.`;
-    const page = categoryPage({
-      sectionPath: "rental",
-      slug: group,
-      seoTitle,
-      heading,
-      description,
-      items,
-      itemPathBuilder: (item) => `/rental/${item.slug}.html`
-    });
-
-    writeFile(path.join(PUBLIC_DIR, page.path), page.html);
-    generated.push(page.path);
-  });
 
   services.forEach((item) => {
     const page = serviceDetailPage(item);
@@ -845,39 +926,9 @@ function main() {
     generated.push(page.path);
   });
 
-  const servicesByCategory = services.reduce((acc, item) => {
-    acc[item.category] = acc[item.category] || [];
-    acc[item.category].push(item);
-    return acc;
-  }, {});
-
-  const serviceCategories = Object.keys(servicesByCategory).map((category) => ({
-    slug: category,
-    title: `${CATEGORY_LABELS[category] || "Услуги"} на Пхукете`,
-    description: `Категория дополнительных услуг: ${CATEGORY_LABELS[category] || category}.`
-  }));
-
-  const servicesIndex = servicesIndexPage(serviceCategories);
+  const servicesIndex = servicesIndexPage(services);
   writeFile(path.join(PUBLIC_DIR, servicesIndex.path), servicesIndex.html);
   generated.push(servicesIndex.path);
-
-  Object.entries(servicesByCategory).forEach(([category, items]) => {
-    const heading = `${CATEGORY_LABELS[category] || "Услуги"} на Пхукете`;
-    const seoTitle = `${heading} | Niko Phuket`;
-    const description = `Услуги категории ${CATEGORY_LABELS[category] || category} на Пхукете.`;
-    const page = categoryPage({
-      sectionPath: "services",
-      slug: category,
-      seoTitle,
-      heading,
-      description,
-      items,
-      itemPathBuilder: (item) => `/services/${item.slug}.html`
-    });
-
-    writeFile(path.join(PUBLIC_DIR, page.path), page.html);
-    generated.push(page.path);
-  });
 
   const staticPaths = ["/", "/privacy.html", "/refund-policy.html"];
   const sitemapXml = buildSitemap([...staticPaths, ...generated]);
