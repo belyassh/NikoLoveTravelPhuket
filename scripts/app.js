@@ -39,6 +39,8 @@ const refs = {
   tagFilter: document.querySelector("#tagFilter"),
   rentalSearchInput: document.querySelector("#rentalSearchInput"),
   rentalTagFilter: document.querySelector("#rentalTagFilter"),
+  servicesSearchInput: document.querySelector("#servicesSearchInput"),
+  servicesTagFilter: document.querySelector("#servicesTagFilter"),
   form: document.querySelector("#requestForm"),
   submitButton: document.querySelector('#requestForm button[type="submit"]'),
   rentalForm: document.querySelector("#rentalRequestForm"),
@@ -86,8 +88,10 @@ async function initialize() {
   state.emailService = normalizeEmailServiceConfig(excursionsData.emailService);
 
   setupManagerLink();
+  populateExcursionTagFilter();
   renderCards(getTopExcursions(state.excursions));
   await loadAndRenderServices();
+  populateServicesTagFilter();
   setupDeferredRentalState();
   bindEvents();
   setupRentalLazyLoading();
@@ -157,6 +161,27 @@ function bindEvents() {
       applyRentalFilters();
     }
   });
+  if (refs.searchInput) {
+    refs.searchInput.addEventListener("input", debounce(() => {
+      applyExcursionFilters();
+    }, INPUT_DEBOUNCE_MS));
+  }
+  if (refs.tagFilter) {
+    refs.tagFilter.addEventListener("change", () => {
+      applyExcursionFilters();
+    });
+  }
+
+  if (refs.servicesSearchInput) {
+    refs.servicesSearchInput.addEventListener("input", debounce(() => {
+      applyServiceFilters();
+    }, INPUT_DEBOUNCE_MS));
+  }
+  if (refs.servicesTagFilter) {
+    refs.servicesTagFilter.addEventListener("change", () => {
+      applyServiceFilters();
+    });
+  }
   refs.form.addEventListener("submit", onFormSubmit);
   refs.rentalForm.addEventListener("submit", onRentalFormSubmit);
   refs.dialogClose.addEventListener("click", closeDialog);
@@ -252,6 +277,157 @@ function populateRentalTagFilter() {
   }
 }
 
+function populateExcursionTagFilter() {
+  if (!refs.tagFilter) return;
+  refs.tagFilter.querySelectorAll('option:not([value="all"])').forEach((option) => option.remove());
+  const categories = [...new Set(state.excursions.map((item) => item.category).filter(Boolean))].sort();
+
+  for (const category of categories) {
+    const option = document.createElement("option");
+    option.value = category;
+    option.textContent = category;
+    refs.tagFilter.append(option);
+  }
+}
+
+function applyExcursionFilters() {
+  const query = (refs.searchInput && refs.searchInput.value || "").trim().toLowerCase();
+  const category = (refs.tagFilter && refs.tagFilter.value) || "all";
+
+  state.filtered = state.excursions.filter((item) => {
+    const byCategory = category === "all" || item.category === category;
+    const byQuery = !query || (item._searchIndex || buildExcursionSearchIndex(item)).includes(query);
+    return byCategory && byQuery;
+  });
+
+  renderCards(state.filtered);
+}
+
+function populateServicesTagFilter() {
+  if (!refs.servicesTagFilter) return;
+  refs.servicesTagFilter.querySelectorAll('option:not([value="all"])').forEach((option) => option.remove());
+  const categories = [...new Set(state.services.map((item) => item.category).filter(Boolean))].sort();
+
+  for (const category of categories) {
+    const option = document.createElement("option");
+    option.value = category;
+    option.textContent = category;
+    refs.servicesTagFilter.append(option);
+  }
+}
+
+function applyServiceFilters() {
+  const query = (refs.servicesSearchInput && refs.servicesSearchInput.value || "").trim().toLowerCase();
+  const category = (refs.servicesTagFilter && refs.servicesTagFilter.value) || "all";
+
+  const filtered = state.services.filter((item) => {
+    const byCategory = category === "all" || item.category === category;
+    const byQuery = !query || (item._searchIndex || buildServiceSearchIndex(item)).includes(query);
+    return byCategory && byQuery;
+  });
+
+  renderServiceCards(filtered);
+}
+
+function openDetailsModal(item, type) {
+  if (!refs.detailsContent || !refs.detailsDialog) return;
+
+  // build content
+  refs.detailsContent.replaceChildren();
+
+  const images = type === "rental" ? getRentalImages(item) : type === "service" ? (Array.isArray(item.images) ? item.images : [getServiceImage(item)]) : getExcursionImages(item);
+
+  const container = document.createElement("div");
+  container.className = "details-inner";
+
+  // slider
+  const slider = document.createElement("div");
+  slider.className = "slider";
+  const img = document.createElement("img");
+  img.src = images[0];
+  img.alt = item.title;
+  slider.appendChild(img);
+
+  // simple prev/next
+  if (images.length > 1) {
+    let idx = 0;
+    const prev = document.createElement("button");
+    prev.className = "slider-control slider-prev";
+    prev.type = "button";
+    prev.textContent = "◀";
+    prev.addEventListener("click", () => {
+      idx = (idx - 1 + images.length) % images.length;
+      img.src = images[idx];
+    });
+
+    const next = document.createElement("button");
+    next.className = "slider-control slider-next";
+    next.type = "button";
+    next.textContent = "▶";
+    next.addEventListener("click", () => {
+      idx = (idx + 1) % images.length;
+      img.src = images[idx];
+    });
+
+    slider.appendChild(prev);
+    slider.appendChild(next);
+  }
+
+  const body = document.createElement("div");
+  body.className = "details-body";
+  const title = document.createElement("h3");
+  title.textContent = item.title;
+  const desc = document.createElement("p");
+  desc.className = "details-meta";
+  desc.textContent = item.description || item.overview || "";
+
+  const actions = document.createElement("div");
+  actions.className = "status-actions";
+
+  const openFull = document.createElement("button");
+  openFull.className = "btn btn-primary";
+  openFull.type = "button";
+  openFull.textContent = "Открыть подробную страницу";
+  openFull.addEventListener("click", () => {
+    let path = "/";
+    if (type === "excursion") path = buildExcursionPagePath(item);
+    if (type === "rental") path = buildRentalPagePath(item);
+    if (type === "service") path = buildServicePagePath(item);
+    refs.detailsDialog.close();
+    window.location.href = path;
+  });
+
+  const requestBtn = document.createElement("button");
+  requestBtn.className = "btn btn-ghost";
+  requestBtn.type = "button";
+  requestBtn.textContent = "Запросить";
+  requestBtn.addEventListener("click", () => {
+    refs.detailsDialog.close();
+    if (type === "excursion") window.location.href = `${buildExcursionPagePath(item)}#request`;
+    if (type === "rental") window.location.href = `${buildRentalPagePath(item)}#request`;
+    if (type === "service") window.location.href = `${buildServicePagePath(item)}#request`;
+  });
+
+  actions.appendChild(openFull);
+  actions.appendChild(requestBtn);
+
+  body.appendChild(title);
+  body.appendChild(desc);
+  body.appendChild(actions);
+
+  const detailsLayout = document.createElement("div");
+  detailsLayout.className = "details-layout";
+  detailsLayout.appendChild(slider);
+  detailsLayout.appendChild(body);
+
+  const detailsWrapper = document.createElement("div");
+  detailsWrapper.className = "details-content-inner";
+  detailsWrapper.appendChild(detailsLayout);
+
+  refs.detailsContent.replaceChildren(detailsWrapper);
+  refs.detailsDialog.showModal();
+}
+
 function getTopExcursions(items) {
   const withRank = items
     .filter((item) => Number.isFinite(Number(item.topRank)) && Number(item.topRank) >= 1 && Number(item.topRank) <= 6)
@@ -288,9 +464,8 @@ function renderCards(items) {
 
     const detailsBtn = node.querySelector('[data-action="details"]');
     const selectBtn = node.querySelector('[data-action="select"]');
-
     detailsBtn.addEventListener("click", () => {
-      window.location.href = buildExcursionPagePath(item);
+      openDetailsModal(item, "excursion");
     });
     selectBtn.addEventListener("click", () => {
       window.location.href = `${buildExcursionPagePath(item)}#request`;
@@ -348,7 +523,7 @@ function renderRentalCards(items) {
     const requestBtn = node.querySelector('[data-action="request"]');
 
     detailsBtn.addEventListener("click", () => {
-      window.location.href = buildRentalPagePath(item);
+      openDetailsModal(item, "rental");
     });
     requestBtn.addEventListener("click", () => {
       window.location.href = `${buildRentalPagePath(item)}#request`;
@@ -388,7 +563,7 @@ function renderServiceCards(items) {
     const requestBtn = node.querySelector('[data-action="request"]');
 
     detailsBtn.addEventListener("click", () => {
-      window.location.href = buildServicePagePath(item);
+      openDetailsModal(item, "service");
     });
     requestBtn.addEventListener("click", () => {
       window.location.href = `${buildServicePagePath(item)}#request`;
@@ -914,7 +1089,7 @@ function setupDeferredRentalState() {
 async function loadAndRenderServices() {
   try {
     const servicesData = await loadJsonData(SERVICES_DATA_URL, "услуг");
-    state.services = (servicesData.services ?? []).map((item) => ({ ...item }));
+    state.services = (servicesData.services ?? []).map((item) => ({ ...item, _searchIndex: buildServiceSearchIndex(item) }));
     renderServiceCards(state.services);
   } catch (error) {
     refs.servicesCardsGrid.replaceChildren(createEmptyState("Не удалось загрузить данные услуг."));
