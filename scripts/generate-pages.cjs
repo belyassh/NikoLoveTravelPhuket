@@ -118,13 +118,6 @@ function pageTemplate({ title, description, canonicalPath, body, jsonLd }) {
         gap: 1.8rem;
         padding-bottom: 2.8rem;
       }
-      .seo-page {
-        border-radius: var(--radius-lg);
-        border: 1px solid var(--line);
-        background: rgba(255, 254, 248, 0.9);
-        box-shadow: var(--shadow);
-        padding: clamp(1.2rem, 2.5vw, 2rem);
-      }
       .seo-head { margin-bottom: 0.9rem; }
       .seo-head h1 { margin: 0 0 0.6rem; }
       .seo-head p {
@@ -166,7 +159,23 @@ function pageTemplate({ title, description, canonicalPath, body, jsonLd }) {
       .itinerary-activity { flex: 1; font-size: 0.9rem; }
       .seo-breadcrumbs { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 1rem; }
       .seo-breadcrumbs a { color: var(--brand); }
-      .seo-back-top { margin-bottom: 0.9rem; }
+      .seo-page {
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--line);
+        background: rgba(255, 254, 248, 0.9);
+        box-shadow: var(--shadow);
+        padding: clamp(1rem, 2vw, 1.6rem);
+      }
+
+      .seo-back-top {
+        display: flex;
+        gap: 0.6rem;
+        margin-bottom: 0.9rem;
+        align-items: center;
+      }
+      .seo-back-top .btn {
+        padding: 0.5rem 0.85rem;
+      }
       .muted { opacity: 0.85; }
       .seo-request-wrap {
         margin-top: 1rem;
@@ -221,7 +230,10 @@ function pageTemplate({ title, description, canonicalPath, body, jsonLd }) {
 
     <main class="seo-main">
       <section class="seo-page">
-        <p class="seo-back-top"><a class="btn btn-ghost" href="/index.html">← Назад</a></p>
+        <p class="seo-back-top">
+          <a class="btn btn-ghost" href="/index.html#catalog" aria-label="Вернуться к каталогу">← К каталогу</a>
+          <a class="btn btn-ghost" href="/index.html" aria-label="На главную">На главную</a>
+        </p>
         ${body}
       </section>
     </main>
