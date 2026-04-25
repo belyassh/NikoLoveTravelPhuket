@@ -238,6 +238,19 @@ function pageTemplate({ title, description, canonicalPath, body, jsonLd }) {
       </section>
     </main>
 
+    <button id="tgFab" class="tg-fab" aria-label="Написать в Telegram">✆</button>
+    <script>
+      (function(){
+        const btn = document.getElementById('tgFab');
+        if (!btn) return;
+        btn.addEventListener('click', function(){
+          const text = document.title + ' — ' + location.href;
+          const url = 'https://t.me/share/url?url=' + encodeURIComponent(location.href) + '&text=' + encodeURIComponent(text);
+          window.open(url, '_blank', 'noopener,noreferrer');
+        });
+      })();
+    </script>
+
     <footer class="site-footer" id="contacts">
       <div class="footer-grid">
         <section class="footer-block footer-brand" aria-label="О компании Niko Phuket">

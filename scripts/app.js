@@ -54,6 +54,7 @@ const refs = {
   detailsDialog: document.querySelector("#detailsDialog"),
   detailsContent: document.querySelector("#detailsContent"),
   dialogClose: document.querySelector("#dialogClose"),
+  tgFab: document.querySelector("#tgFab"),
   statusDialog: document.querySelector("#statusDialog"),
   statusLoader: document.querySelector("#statusLoader"),
   statusTitle: document.querySelector("#statusTitle"),
@@ -95,6 +96,20 @@ async function initialize() {
   setupDeferredRentalState();
   bindEvents();
   setupRentalLazyLoading();
+
+  // attach global telegram FAB handler
+  if (refs.tgFab) {
+    refs.tgFab.addEventListener("click", () => {
+      const current = state.currentPreviewItem;
+      if (current) {
+        const text = `${current.title} — ${window.location.origin}${buildExcursionPagePath(current)}`;
+        openTelegramShare(text);
+        return;
+      }
+
+      openTelegramShare(document.title + " — " + window.location.href);
+    });
+  }
 
   if (window.location.hash === "#rental" || window.location.hash === "#rental-request") {
     void ensureRentalsLoaded();
@@ -426,6 +441,14 @@ function openDetailsModal(item, type) {
 
   refs.detailsContent.replaceChildren(detailsWrapper);
   refs.detailsDialog.showModal();
+  state.currentPreviewItem = item;
+}
+
+function openTelegramShare(prefillText) {
+  const text = String(prefillText || "").slice(0, 800);
+  const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(text)}`;
+  // attempt to open in new window/tab
+  window.open(shareUrl, "_blank", "noopener,noreferrer");
 }
 
 function getTopExcursions(items) {
