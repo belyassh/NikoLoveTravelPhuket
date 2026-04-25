@@ -233,7 +233,20 @@
         <div class="section-head">
           <h2>Экскурсии и туры по Пхукету</h2>
           <p>Выбирайте морские, обзорные и культурные маршруты с удобным онлайн-бронированием.</p>
-          <a class="btn btn-ghost" href="/excursions/index.html">Смотреть все экскурсии</a>
+        </div>
+
+        <div class="catalog-controls">
+          <label class="field">
+            <span>Поиск по экскурсиям</span>
+            <input id="searchInput" type="search" placeholder="Например: пхи-пхи, снорклинг, обзор" />
+          </label>
+
+          <label class="field">
+            <span>Категория</span>
+            <select id="tagFilter">
+              <option value="all">Все категории</option>
+            </select>
+          </label>
         </div>
 
         <div id="cardsGrid" class="cards-grid" aria-live="polite"></div>
@@ -266,7 +279,20 @@
         <div class="section-head">
           <h2>Интерактивная витрина услуг</h2>
           <p>Fast Track, Border Run, трансферы и другие полезные сервисы для отдыха.</p>
-          <a class="btn btn-ghost" href="/services/index.html">Смотреть все услуги</a>
+        </div>
+
+        <div class="catalog-controls">
+          <label class="field">
+            <span>Поиск по услугам</span>
+            <input id="servicesSearchInput" type="search" placeholder="Например: Fast Track, трансфер" />
+          </label>
+
+          <label class="field">
+            <span>Категория</span>
+            <select id="servicesTagFilter">
+              <option value="all">Все категории</option>
+            </select>
+          </label>
         </div>
 
         <div id="servicesCardsGrid" class="cards-grid" aria-live="polite"></div>
