@@ -104,18 +104,22 @@ main,
 }
 
 .site-header {
-  position: sticky;
+  position: fixed;
   top: 0.8rem;
-  z-index: 10;
-  margin-top: 0.8rem;
-  background: rgba(255, 254, 248, 0.8);
-  border: 1px solid rgba(217, 222, 208, 0.8);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  margin: 0;
+  width: min(1120px, calc(100% - 2rem));
+  background: rgba(255, 254, 248, 0.92);
+  border: 1px solid rgba(217, 222, 208, 0.92);
   backdrop-filter: blur(14px);
   border-radius: 999px;
-  padding: 0.75rem 1rem;
+  padding: 0.65rem 1rem;
   display: flex;
   align-items: center;
   gap: 1rem;
+  box-shadow: 0 6px 22px rgba(20, 32, 39, 0.06);
 }
 
 .brand {
@@ -205,7 +209,7 @@ main,
 main {
   display: grid;
   gap: 2.4rem;
-  padding: 1.4rem 0 2.8rem;
+  padding: calc(1.4rem + 3.2rem) 0 2.8rem;
 }
 
 .hero,
@@ -405,6 +409,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   align-content: start;
 }
 
+/* Desktop: 3 columns; tablet: 2 columns; mobile: 2 columns (compact phones: 1) */
 @media (max-width: 900px) {
   .cards-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -412,6 +417,13 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 }
 
 @media (max-width: 560px) {
+  .cards-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.6rem;
+  }
+}
+
+@media (max-width: 360px) {
   .cards-grid {
     grid-template-columns: 1fr;
   }
@@ -444,12 +456,12 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 }
 
 .tour-card-title {
-  font-size: 1.05rem;
+  font-size: clamp(0.95rem, 2.6vw, 1.05rem);
 }
 
 .tour-card-overview {
   color: var(--muted);
-  font-size: 0.95rem;
+  font-size: clamp(0.82rem, 2.2vw, 0.95rem);
   max-width: 100%;
   min-width: 0;
 }
@@ -797,6 +809,16 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   object-fit: cover;
   display: block;
 }
+
+@media (max-width: 560px) {
+  .tour-card-image {
+    height: 140px;
+  }
+  .tour-card-body {
+    padding: 0.6rem;
+  }
+}
+
 
 .slider-control {
   position: absolute;
