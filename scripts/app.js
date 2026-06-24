@@ -19,6 +19,7 @@ const FALLBACK_IMAGE =
 const INPUT_DEBOUNCE_MS = 120;
 const DATA_CACHE_TTL_MS = 5 * 60 * 1000;
 const DATA_CACHE_PREFIX = "niko-travel:data:";
+const MARKETING_STORAGE_KEY = "niko-travel:marketing-context";
 const EXCURSIONS_DATA_URL = new URL("../data/excursions.json", import.meta.url).href;
 const RENTALS_DATA_URL = new URL("../data/rentals.json", import.meta.url).href;
 const SERVICES_DATA_URL = new URL("../data/services.json", import.meta.url).href;
@@ -62,6 +63,8 @@ const refs = {
   continueShoppingBtn: document.querySelector("#continueShoppingBtn"),
   gotoFaqBtn: document.querySelector("#gotoFaqBtn")
 };
+
+const marketingContext = captureMarketingContext();
 
 bindNavigationEvents();
 
@@ -460,14 +463,24 @@ function renderCards(items) {
 
     node.querySelector(".tour-card-title").textContent = item.title;
     node.querySelector(".tour-card-overview").textContent = item.overview;
-    node.querySelector(".tour-card-price").textContent = formatPrice(item.price);
+    node.querySelector(".tour-card-price").textContent = formatExcursionPriceSummary(item);
 
     const detailsBtn = node.querySelector('[data-action="details"]');
     const selectBtn = node.querySelector('[data-action="select"]');
     detailsBtn.addEventListener("click", () => {
+      trackAnalyticsEvent("view_item", {
+        item_name: item.title,
+        item_category: item.category,
+        item_type: "excursion"
+      });
       openDetailsModal(item, "excursion");
     });
     selectBtn.addEventListener("click", () => {
+      trackAnalyticsEvent("begin_checkout", {
+        item_name: item.title,
+        item_category: item.category,
+        item_type: "excursion"
+      });
       window.location.href = `${buildExcursionPagePath(item)}#request`;
     });
 
@@ -595,6 +608,7 @@ async function onFormSubmit(event) {
     lastName: formData.get("lastName"),
     phone: formData.get("phone"),
     hotel: formData.get("hotel"),
+    preferences: formData.get("preferences"),
     telegramNick: formData.get("telegramNick"),
     adultsCount: Math.max(1, Number(formData.get("adultsCount")) || 1),
     childrenCount: Math.max(0, Number(formData.get("childrenCount")) || 0),
@@ -612,11 +626,13 @@ async function onFormSubmit(event) {
     `Имя и фамилия: ${requestDetails.firstName} ${requestDetails.lastName}`,
     `Телефон: ${requestDetails.phone}`,
     `Отель: ${requestDetails.hotel}`,
+    requestDetails.preferences ? `Интересы и пожелания: ${requestDetails.preferences}` : "",
     `Telegram: ${requestDetails.telegramNick}`,
     `Взрослые: ${requestDetails.adultsCount}`,
     `Дети: ${requestDetails.childrenCount}`,
-    `Даты отдыха: ${requestDetails.vacationStart} - ${requestDetails.vacationEnd}`
-  ].join("\n");
+    `Даты отдыха: ${requestDetails.vacationStart} - ${requestDetails.vacationEnd}`,
+    ...buildMarketingMessageLines(marketingContext)
+  ].filter(Boolean).join("\n");
 
   setExcursionSubmittingState(true);
   showStatusDialog({
@@ -632,6 +648,11 @@ async function onFormSubmit(event) {
       if (result.ok) {
         refs.formNote.textContent = "Заявка на подбор отправлена. Мы свяжемся с вами в ближайшее время.";
         refs.form.reset();
+        trackAnalyticsEvent("generate_lead", {
+          lead_type: "selection_request",
+          send_method: "email",
+          form_location: "homepage"
+        });
         showStatusDialog({
           title: "Мы приняли вашу заявку на подбор",
           text: "Менеджер свяжется с вами в ближайшее время.",
@@ -659,6 +680,11 @@ async function onFormSubmit(event) {
       title: "Нужна отправка через Telegram",
       text: "Мы открыли резервный канал. Завершите отправку заявки в Telegram.",
       mode: "fallback"
+    });
+    trackAnalyticsEvent("generate_lead", {
+      lead_type: "selection_request",
+      send_method: "telegram_fallback",
+      form_location: "homepage"
     });
   } finally {
     setExcursionSubmittingState(false);
@@ -706,6 +732,11 @@ async function onRentalFormSubmit(event) {
       if (result.ok) {
         refs.rentalFormNote.textContent = "Заявка на аренду отправлена. Мы свяжемся с вами в ближайшее время.";
         refs.rentalForm.reset();
+        trackAnalyticsEvent("generate_lead", {
+          lead_type: "rental_request",
+          send_method: "email",
+          form_location: "homepage"
+        });
         showStatusDialog({
           title: "Мы приняли вашу заявку",
           text: "Менеджер свяжется с вами в ближайшее время.",
@@ -733,6 +764,11 @@ async function onRentalFormSubmit(event) {
       title: "Нужна отправка через Telegram",
       text: "Мы открыли резервный канал. Завершите отправку заявки в Telegram.",
       mode: "fallback"
+    });
+    trackAnalyticsEvent("generate_lead", {
+      lead_type: "rental_request",
+      send_method: "telegram_fallback",
+      form_location: "homepage"
     });
   } finally {
     setRentalSubmittingState(false);
@@ -781,6 +817,7 @@ async function sendRequestViaEmailService(requestDetails, message) {
     payload.append("name", `${requestDetails.firstName} ${requestDetails.lastName}`);
     payload.append("phone", requestDetails.phone);
     payload.append("hotel", requestDetails.hotel);
+    payload.append("preferences", requestDetails.preferences || "");
     payload.append("telegramNick", requestDetails.telegramNick);
     payload.append("adultsCount", String(requestDetails.adultsCount));
     payload.append("childrenCount", String(requestDetails.childrenCount));
@@ -789,6 +826,7 @@ async function sendRequestViaEmailService(requestDetails, message) {
     payload.append("leadType", "Заявка на подбор экскурсии");
     payload.append("source", "Niko Travel selection request form");
     payload.append("submittedAt", new Date().toISOString());
+    appendMarketingFields(payload, marketingContext);
     payload.append("message", message);
 
     const response = await fetch(state.emailService.endpoint, {
@@ -826,6 +864,7 @@ async function sendRentalRequestViaEmailService(requestDetails, message) {
     payload.append("leadType", "Заявка на аренду");
     payload.append("source", "Niko Travel rental request form");
     payload.append("submittedAt", new Date().toISOString());
+    appendMarketingFields(payload, marketingContext);
     payload.append("message", message);
 
     const response = await fetch(state.emailService.endpoint, {
@@ -1033,6 +1072,31 @@ function formatPrice(value) {
   return priceFormatter.format(value);
 }
 
+function getExcursionBasePrice(excursion) {
+  const programPrices = Array.isArray(excursion?.programs)
+    ? excursion.programs
+      .map((program) => Number(program?.price))
+      .filter((price) => Number.isFinite(price) && price > 0)
+    : [];
+
+  if (programPrices.length) {
+    return Math.min(...programPrices);
+  }
+
+  return Number(excursion?.price) || 0;
+}
+
+function formatExcursionPriceSummary(excursion) {
+  const basePrice = getExcursionBasePrice(excursion);
+  const programCount = Array.isArray(excursion?.programs) ? excursion.programs.length : 0;
+
+  if (programCount > 1) {
+    return `От ${formatPrice(basePrice)} • ${programCount} программы`;
+  }
+
+  return formatPrice(basePrice);
+}
+
 function createPriceFormatter(currency) {
   return new Intl.NumberFormat("ru-RU", {
     style: "currency",
@@ -1042,10 +1106,95 @@ function createPriceFormatter(currency) {
 }
 
 function buildExcursionSearchIndex(item) {
-  return [item.title, item.overview, ...(item.tags || [])]
+  const programTerms = Array.isArray(item.programs)
+    ? item.programs.flatMap((program) => [
+      program.title,
+      program.departure,
+      program.priceLabel,
+      program.pickupZones,
+      ...(program.days || [])
+    ])
+    : [];
+
+  return [item.title, item.overview, item.description, ...(item.tags || []), ...programTerms]
     .filter(Boolean)
     .join(" ")
     .toLowerCase();
+}
+
+function captureMarketingContext() {
+  const params = new URLSearchParams(window.location.search);
+  const existing = readStoredMarketingContext();
+  const context = {
+    landingPage: existing.landingPage || window.location.href,
+    lastPage: window.location.href,
+    referrer: existing.referrer || document.referrer || "",
+    utmSource: params.get("utm_source") || existing.utmSource || "",
+    utmMedium: params.get("utm_medium") || existing.utmMedium || "",
+    utmCampaign: params.get("utm_campaign") || existing.utmCampaign || "",
+    utmTerm: params.get("utm_term") || existing.utmTerm || "",
+    utmContent: params.get("utm_content") || existing.utmContent || "",
+    gclid: params.get("gclid") || existing.gclid || "",
+    fbclid: params.get("fbclid") || existing.fbclid || "",
+    yclid: params.get("yclid") || existing.yclid || "",
+    msclkid: params.get("msclkid") || existing.msclkid || ""
+  };
+
+  try {
+    window.sessionStorage.setItem(MARKETING_STORAGE_KEY, JSON.stringify(context));
+  } catch {
+    return context;
+  }
+
+  return context;
+}
+
+function readStoredMarketingContext() {
+  try {
+    const raw = window.sessionStorage.getItem(MARKETING_STORAGE_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+}
+
+function appendMarketingFields(payload, context) {
+  const fields = {
+    landingPage: context.landingPage,
+    lastPage: context.lastPage,
+    referrer: context.referrer,
+    utmSource: context.utmSource,
+    utmMedium: context.utmMedium,
+    utmCampaign: context.utmCampaign,
+    utmTerm: context.utmTerm,
+    utmContent: context.utmContent,
+    gclid: context.gclid,
+    fbclid: context.fbclid,
+    yclid: context.yclid,
+    msclkid: context.msclkid
+  };
+
+  Object.entries(fields).forEach(([key, value]) => {
+    if (value) {
+      payload.append(key, value);
+    }
+  });
+}
+
+function buildMarketingMessageLines(context) {
+  return [
+    context.utmSource ? `UTM source: ${context.utmSource}` : "",
+    context.utmMedium ? `UTM medium: ${context.utmMedium}` : "",
+    context.utmCampaign ? `UTM campaign: ${context.utmCampaign}` : "",
+    context.gclid ? `GCLID: ${context.gclid}` : "",
+    context.referrer ? `Referrer: ${context.referrer}` : ""
+  ].filter(Boolean);
+}
+
+function trackAnalyticsEvent(eventName, params = {}) {
+  if (typeof window.gtag === "function") {
+    window.gtag("event", eventName, params);
+  }
 }
 
 function buildRentalSearchIndex(item) {

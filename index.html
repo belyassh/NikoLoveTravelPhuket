@@ -301,7 +301,7 @@
       <section class="request" id="request">
         <div class="section-head">
           <h2>Заявка на подбор экскурсии</h2>
-          <p>Заполните короткую форму, и мы подберем маршруты под ваш отдых.</p>
+          <p>Это форма подбора, а не финальной брони. Для экскурсий с несколькими программами итоговое бронирование оформляется на странице выбранной экскурсии.</p>
         </div>
 
         <form id="requestForm" class="request-form" novalidate>
@@ -339,6 +339,15 @@
                 placeholder="Например: Hilton Garden Inn"
                 required
               />
+            </label>
+
+            <label class="field field-wide">
+              <span>Какие экскурсии или даты интересуют</span>
+              <textarea
+                name="preferences"
+                rows="3"
+                placeholder="Например: Пхи-Пхи или Джеймс Бонд, удобные даты 12-14 июля"
+              ></textarea>
             </label>
 
             <label class="field">
@@ -568,7 +577,7 @@
             <p class="tour-card-price"></p>
             <div class="tour-card-actions">
               <button class="btn btn-small btn-ghost" type="button" data-action="details">Подробнее</button>
-              <button class="btn btn-small btn-primary" type="button" data-action="select">Запросить</button>
+              <button class="btn btn-small btn-primary" type="button" data-action="select">Открыть и забронировать</button>
             </div>
           </div>
         </div>

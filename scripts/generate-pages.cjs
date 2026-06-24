@@ -10,6 +10,7 @@ const FAVICON_SRC = path.join(ROOT, "niko_phuket_favicon.ico");
 const SITE_URL = "https://nikophuket.com";
 const FALLBACK_CARD_IMAGE = "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80";
 const TELEGRAM_MANAGER_USERNAME = "hitachi315";
+const GA_MEASUREMENT_ID = "G-VRKTR3SHH0";
 
 const CATEGORY_LABELS = {
   sea: "Морские экскурсии",
@@ -66,6 +67,32 @@ function asPrice(value, unit, currency) {
   return `${value} ${currency}${unit ? ` ${unit}` : ""}`;
 }
 
+function getExcursionBasePrice(item) {
+  const programPrices = Array.isArray(item?.programs)
+    ? item.programs
+      .map((program) => Number(program?.price))
+      .filter((price) => Number.isFinite(price) && price > 0)
+    : [];
+
+  if (programPrices.length) {
+    return Math.min(...programPrices);
+  }
+
+  return Number(item?.price) || 0;
+}
+
+function getExcursionPrograms(item, currency) {
+  if (!Array.isArray(item?.programs) || !item.programs.length) {
+    return [];
+  }
+
+  return item.programs.map((program) => ({
+    ...program,
+    price: Number(program.price) || 0,
+    priceLabel: program.priceLabel || asPrice(Number(program.price) || 0, "за человека", currency)
+  }));
+}
+
 function getFirstImage(item) {
   const images = Array.isArray(item?.images)
     ? item.images.filter((url) => typeof url === "string" && url.trim())
@@ -111,6 +138,15 @@ function pageTemplate({ title, description, canonicalPath, body, jsonLd }) {
       rel="stylesheet"
     />
     <link rel="stylesheet" href="/styles/main.css" />
+    <script async src="https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag("js", new Date());
+      gtag("config", "${GA_MEASUREMENT_ID}");
+    </script>
 
     <style>
       .seo-main {
@@ -170,6 +206,35 @@ function pageTemplate({ title, description, canonicalPath, body, jsonLd }) {
       .muted { opacity: 0.85; }
       .seo-request-wrap {
         margin-top: 1rem;
+      }
+      .program-grid {
+        display: grid;
+        gap: 1rem;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      }
+      .program-card {
+        border: 1px solid var(--line);
+        border-radius: var(--radius-md);
+        padding: 1rem;
+        background: var(--surface);
+      }
+      .program-card h3 {
+        margin: 0 0 0.5rem;
+        font-size: 1rem;
+      }
+      .program-card p {
+        color: var(--muted);
+        line-height: 1.5;
+      }
+      .program-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        margin-top: 0.85rem;
+        font-size: 0.92rem;
+      }
+      .program-meta strong {
+        color: var(--text);
       }
       .seo-hero-image {
         border: 1px solid var(--line);
@@ -279,26 +344,93 @@ function pageTemplate({ title, description, canonicalPath, body, jsonLd }) {
           return;
         }
 
+        const marketingStorageKey = 'niko-travel:marketing-context';
+
         const submitButton = form.querySelector('button[type="submit"]');
         const note = form.querySelector('[data-form-note]');
+        const travelDateField = form.querySelector('[name="travelDate"]');
+
+        if (travelDateField) {
+          travelDateField.min = new Date().toISOString().slice(0, 10);
+        }
+
+        const getStoredContext = () => {
+          try {
+            const raw = window.sessionStorage.getItem(marketingStorageKey);
+            return raw ? JSON.parse(raw) : {};
+          } catch {
+            return {};
+          }
+        };
+
+        const persistContext = () => {
+          const params = new URLSearchParams(window.location.search);
+          const existing = getStoredContext();
+          const context = {
+            landingPage: existing.landingPage || window.location.href,
+            lastPage: window.location.href,
+            referrer: existing.referrer || document.referrer || '',
+            utmSource: params.get('utm_source') || existing.utmSource || '',
+            utmMedium: params.get('utm_medium') || existing.utmMedium || '',
+            utmCampaign: params.get('utm_campaign') || existing.utmCampaign || '',
+            utmTerm: params.get('utm_term') || existing.utmTerm || '',
+            utmContent: params.get('utm_content') || existing.utmContent || '',
+            gclid: params.get('gclid') || existing.gclid || '',
+            fbclid: params.get('fbclid') || existing.fbclid || '',
+            yclid: params.get('yclid') || existing.yclid || '',
+            msclkid: params.get('msclkid') || existing.msclkid || ''
+          };
+
+          try {
+            window.sessionStorage.setItem(marketingStorageKey, JSON.stringify(context));
+          } catch {}
+
+          return context;
+        };
+
+        const assignHiddenField = (name, value) => {
+          const field = form.querySelector('[name="' + name + '"]');
+          if (field) {
+            field.value = value || '';
+          }
+        };
+
+        const trackEvent = (eventName, params) => {
+          if (typeof window.gtag === 'function') {
+            window.gtag('event', eventName, params);
+          }
+        };
+
+        const marketingContext = persistContext();
+        Object.entries(marketingContext).forEach(([key, value]) => {
+          assignHiddenField(key, value);
+        });
 
         const setSubmitting = (isSubmitting) => {
           if (!submitButton) {
             return;
           }
           submitButton.disabled = isSubmitting;
-          submitButton.textContent = isSubmitting ? 'Отправляем...' : 'Отправить запрос';
+          submitButton.textContent = isSubmitting ? 'Отправляем...' : (form.dataset.itemType === 'excursion' ? 'Забронировать' : 'Отправить запрос');
         };
 
         const buildFallbackMessage = (formData) => {
-          const entries = [];
-          for (const [key, value] of formData.entries()) {
-            if (!value || key.startsWith('_') || key === 'source' || key === 'leadType') {
-              continue;
-            }
-            entries.push(key + ': ' + String(value));
-          }
-          return ['Здравствуйте! Хочу отправить запрос по услуге/товару.', ...entries].join('\n');
+          const entries = [
+            'Здравствуйте! Хочу отправить запрос по услуге/товару.',
+            'Товар/услуга: ' + (formData.get('itemTitle') || ''),
+            formData.get('selectedProgram') ? 'Программа: ' + formData.get('selectedProgram') : '',
+            formData.get('travelDate') ? 'Дата экскурсии: ' + formData.get('travelDate') : '',
+            'Имя: ' + [formData.get('firstName') || '', formData.get('lastName') || ''].join(' ').trim(),
+            'Телефон: ' + (formData.get('phone') || ''),
+            'Отель: ' + (formData.get('hotel') || ''),
+            'Telegram: ' + (formData.get('telegramNick') || ''),
+            formData.get('adultsCount') ? 'Взрослые: ' + formData.get('adultsCount') : '',
+            formData.get('childrenCount') ? 'Дети: ' + formData.get('childrenCount') : '',
+            formData.get('rentalDuration') ? 'Желаемая длительность аренды: ' + formData.get('rentalDuration') : '',
+            formData.get('customerComment') ? 'Комментарий: ' + formData.get('customerComment') : ''
+          ];
+
+          return entries.filter(Boolean).join('\n');
         };
 
         form.addEventListener('submit', async (event) => {
@@ -306,6 +438,14 @@ function pageTemplate({ title, description, canonicalPath, body, jsonLd }) {
 
           if (!form.checkValidity()) {
             form.reportValidity();
+            return;
+          }
+
+          if (travelDateField && travelDateField.value < new Date().toISOString().slice(0, 10)) {
+            if (note) {
+              note.textContent = 'Проверьте дату экскурсии: прошедшую дату бронировать нельзя.';
+            }
+            travelDateField.focus();
             return;
           }
 
@@ -324,9 +464,17 @@ function pageTemplate({ title, description, canonicalPath, body, jsonLd }) {
 
             if (response.ok) {
               form.reset();
+              Object.entries(marketingContext).forEach(([key, value]) => {
+                assignHiddenField(key, value);
+              });
               if (note) {
                 note.textContent = 'Запрос отправлен. Менеджер свяжется с вами в ближайшее время.';
               }
+              trackEvent('generate_lead', {
+                lead_type: form.dataset.itemType === 'excursion' ? 'excursion_booking' : 'rental_request',
+                send_method: 'email',
+                item_name: payload.get('itemTitle') || ''
+              });
               return;
             }
 
@@ -350,6 +498,12 @@ function pageTemplate({ title, description, canonicalPath, body, jsonLd }) {
                 note.textContent = 'Открыт Telegram. Вставьте детали запроса вручную.';
               }
             }
+
+            trackEvent('generate_lead', {
+              lead_type: form.dataset.itemType === 'excursion' ? 'excursion_booking' : 'rental_request',
+              send_method: 'telegram_fallback',
+              item_name: payload.get('itemTitle') || ''
+            });
           } finally {
             setSubmitting(false);
           }
@@ -366,7 +520,10 @@ function normalizeExcursions(raw, currency) {
     slug: item.slug || item.id,
     category: item.category || "land",
     type: "excursion",
-    priceLabel: asPrice(item.price, "за человека", currency)
+    programs: getExcursionPrograms(item, currency),
+    priceLabel: (Array.isArray(item.programs) && item.programs.length > 1)
+      ? `от ${getExcursionBasePrice(item)} ${currency} за человека`
+      : asPrice(getExcursionBasePrice(item), "за человека", currency)
   }));
 }
 
@@ -395,6 +552,7 @@ function normalizeServices(raw, currency) {
 
 function cardMarkup(item, urlPath) {
   const imageUrl = getFirstImage(item);
+  const actionLabel = item.type === "excursion" ? "Открыть и забронировать" : "Запросить";
 
   return `<article class="tour-card">
     <img class="tour-card-image" src="${escapeHtml(imageUrl)}" alt="${escapeHtml(item.title)}" loading="lazy" decoding="async" />
@@ -405,11 +563,21 @@ function cardMarkup(item, urlPath) {
         <p class="tour-card-price">Стоимость: ${escapeHtml(item.priceLabel)}</p>
         <div class="tour-card-actions">
           <a class="btn btn-small btn-ghost" href="${urlPath}">Подробнее</a>
-          <a class="btn btn-small btn-primary" href="${urlPath}#request">Запросить</a>
+          <a class="btn btn-small btn-primary" href="${urlPath}#request">${escapeHtml(actionLabel)}</a>
         </div>
       </div>
     </div>
   </article>`;
+}
+
+function renderProgramSelect(programs) {
+  if (!programs.length) {
+    return "";
+  }
+
+  return `<label class="field field-wide"><span>Программа / отправление</span><select name="selectedProgram" required>
+    ${programs.map((program, index) => `<option value="${escapeHtml(program.title)}|${escapeHtml(program.departure || "")}|${escapeHtml(program.priceLabel || "")}"${index === 0 ? " selected" : ""}>${escapeHtml(program.title)}${program.departure ? ` • ${escapeHtml(program.departure)}` : ""}${program.priceLabel ? ` • ${escapeHtml(program.priceLabel)}` : ""}</option>`).join("")}
+  </select></label>`;
 }
 
 function requestFields(type) {
@@ -417,8 +585,8 @@ function requestFields(type) {
     ? `<label class="field field-wide"><span>Желаемая длительность аренды</span><input name="rentalDuration" type="text" placeholder="Например: 5 дней" required /></label>`
     : `<label class="field"><span>Количество взрослых</span><input name="adultsCount" type="number" min="1" value="2" required /></label>
        <label class="field"><span>Количество детей</span><input name="childrenCount" type="number" min="0" value="0" required /></label>
-       <label class="field"><span>Даты отдыха: с</span><input name="vacationStart" type="date" required /></label>
-       <label class="field"><span>Даты отдыха: по</span><input name="vacationEnd" type="date" required /></label>`;
+       <label class="field field-wide"><span>Дата экскурсии</span><input name="travelDate" type="date" required /></label>
+       <label class="field field-wide"><span>Комментарий</span><textarea name="customerComment" rows="3" placeholder="Например: нужен трансфер из Бангтао, двое детей 6 и 9 лет"></textarea></label>`;
 
   return `<label class="field"><span>Имя</span><input name="firstName" type="text" required /></label>
       <label class="field"><span>Фамилия</span><input name="lastName" type="text" required /></label>
@@ -428,17 +596,17 @@ function requestFields(type) {
       ${durationField}`;
 }
 
-function renderProductRequestForm({ type, itemTitle, endpoint }) {
+function renderProductRequestForm({ type, itemTitle, endpoint, programs = [] }) {
   const subject = type === "rental"
     ? `Новый запрос по аренде: ${itemTitle}`
-    : `Новый запрос по экскурсии: ${itemTitle}`;
-  const leadType = type === "rental" ? "Запрос по аренде" : "Запрос по экскурсии";
+    : `Новая бронь экскурсии: ${itemTitle}`;
+  const leadType = type === "rental" ? "Запрос по аренде" : "Бронь экскурсии";
   const source = type === "rental" ? "Niko Phuket rental product page" : "Niko Phuket excursion product page";
 
   if (!endpoint) {
     return `<div class="seo-request-wrap"><section class="request" id="request">
       <div class="section-head">
-        <h2>${type === "rental" ? "Запрос по аренде" : "Запрос по экскурсии"}</h2>
+        <h2>${type === "rental" ? "Запрос по аренде" : "Бронирование экскурсии"}</h2>
         <p>Для отправки запроса напишите менеджеру в Telegram через кнопку в шапке или на главной странице.</p>
       </div>
       </section></div>`;
@@ -446,20 +614,33 @@ function renderProductRequestForm({ type, itemTitle, endpoint }) {
 
     return `<div class="seo-request-wrap"><section class="request" id="request">
       <div class="section-head">
-        <h2>${type === "rental" ? "Запрос по аренде" : "Запрос по экскурсии"}</h2>
-        <p>Заполните форму: менеджер свяжется с вами для подтверждения деталей.</p>
+        <h2>${type === "rental" ? "Запрос по аренде" : "Бронирование экскурсии"}</h2>
+        <p>${type === "rental" ? "Заполните форму: менеджер свяжется с вами для подтверждения деталей." : "Выберите программу, дату и отправьте бронирование. Менеджер подтвердит наличие мест и детали трансфера."}</p>
       </div>
-      <form class="request-form" method="POST" action="${endpoint}" data-enhanced-request="true">
+      <form class="request-form" method="POST" action="${endpoint}" data-enhanced-request="true" data-item-type="${escapeHtml(type)}">
         <input type="hidden" name="_subject" value="${escapeHtml(subject)}" />
         <input type="hidden" name="leadType" value="${escapeHtml(leadType)}" />
         <input type="hidden" name="itemTitle" value="${escapeHtml(itemTitle)}" />
         <input type="hidden" name="source" value="${escapeHtml(source)}" />
+        <input type="hidden" name="landingPage" value="" />
+        <input type="hidden" name="lastPage" value="" />
+        <input type="hidden" name="referrer" value="" />
+        <input type="hidden" name="utmSource" value="" />
+        <input type="hidden" name="utmMedium" value="" />
+        <input type="hidden" name="utmCampaign" value="" />
+        <input type="hidden" name="utmTerm" value="" />
+        <input type="hidden" name="utmContent" value="" />
+        <input type="hidden" name="gclid" value="" />
+        <input type="hidden" name="fbclid" value="" />
+        <input type="hidden" name="yclid" value="" />
+        <input type="hidden" name="msclkid" value="" />
         <div class="form-grid">
+          ${type === "excursion" ? renderProgramSelect(programs) : ""}
           ${requestFields(type)}
           <input name="_gotcha" type="text" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px;opacity:0;pointer-events:none;" aria-hidden="true" />
         </div>
         <div class="form-actions">
-          <button class="btn btn-primary" type="submit">Отправить запрос</button>
+          <button class="btn btn-primary" type="submit">${type === "rental" ? "Отправить запрос" : "Забронировать"}</button>
           <p class="form-note" data-form-note aria-live="polite"></p>
         </div>
       </form>
@@ -472,6 +653,23 @@ function excursionDetailPage(item, endpoint) {
   const description = item.overview || item.description || `Экскурсия ${item.title} на Пхукете`;
 
   const heroImage = getFirstImage(item);
+  const programCardsHtml = item.programs && item.programs.length > 0
+    ? `<section class="seo-card">
+        <h2>🧭 Доступные программы и отправления</h2>
+        <div class="program-grid">
+          ${item.programs.map((program) => `
+            <article class="program-card">
+              <h3>${escapeHtml(program.title)}</h3>
+              <p>${escapeHtml(program.notes || program.priceLabel || "Детали программы уточняются при подтверждении бронирования.")}</p>
+              <div class="program-meta">
+                <span><strong>Выезд:</strong> ${escapeHtml(program.departure || "По запросу")}</span>
+                <span><strong>Цена:</strong> ${escapeHtml(program.priceLabel || asPrice(program.price, "за человека", "THB"))}</span>
+              </div>
+            </article>
+          `).join("")}
+        </div>
+      </section>`
+    : "";
   
   // Построение стоимости в отдельный блок
   const priceBlockHtml = `<section class="seo-card seo-card-price">
@@ -535,6 +733,7 @@ function excursionDetailPage(item, endpoint) {
       <p>${escapeHtml(description)}</p>
     </section>
     ${priceBlockHtml}
+    ${programCardsHtml}
     ${metaHtml}
     ${itineraryHtml}
     <section class="seo-grid">
@@ -549,7 +748,7 @@ function excursionDetailPage(item, endpoint) {
     </section>
     ${requirementsHtml}
     ${notesHtml}
-    ${renderProductRequestForm({ type: "excursion", itemTitle: item.title, endpoint })}`;
+    ${renderProductRequestForm({ type: "excursion", itemTitle: item.title, endpoint, programs: item.programs || [] })}`;
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -558,12 +757,20 @@ function excursionDetailPage(item, endpoint) {
     description,
     duration: item.duration || undefined,
     touristType: "Туристы на Пхукете",
-    offers: {
-      "@type": "Offer",
-      price: item.price,
-      priceCurrency: "THB",
-      url: `${SITE_URL}${urlPath}`
-    },
+    offers: (item.programs || []).length
+      ? item.programs.map((program) => ({
+        "@type": "Offer",
+        name: `${item.title} - ${program.title}`,
+        price: program.price,
+        priceCurrency: "THB",
+        url: `${SITE_URL}${urlPath}#request`
+      }))
+      : {
+        "@type": "Offer",
+        price: item.price,
+        priceCurrency: "THB",
+        url: `${SITE_URL}${urlPath}`
+      },
     provider: {
       "@type": "TravelAgency",
       name: "Niko Phuket",
