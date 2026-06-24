@@ -51,6 +51,11 @@ function syncSharedAssets() {
   copyFileIfExists(FAVICON_SRC, path.join(PUBLIC_DIR, "niko_phuket_favicon.ico"));
 }
 
+function writeGeneratedPage(relativePath, content) {
+  writeFile(path.join(PUBLIC_DIR, relativePath), content);
+  writeFile(path.join(ROOT, relativePath), content);
+}
+
 function escapeHtml(value) {
   return String(value)
     .replace(/&/g, "&amp;")
@@ -1141,13 +1146,14 @@ function main() {
 
   ["excursions", "rental", "services"].forEach((folder) => {
     fs.rmSync(path.join(PUBLIC_DIR, folder), { recursive: true, force: true });
+    fs.rmSync(path.join(ROOT, folder), { recursive: true, force: true });
   });
 
   const generated = [];
 
   excursions.forEach((item) => {
     const page = excursionDetailPage(item, endpoint);
-    writeFile(path.join(PUBLIC_DIR, page.path), page.html);
+    writeGeneratedPage(page.path, page.html);
     generated.push(page.path);
   });
 
@@ -1158,27 +1164,27 @@ function main() {
   }, {});
 
   const excursionsIndex = excursionsIndexPage(excursionsByCategory);
-  writeFile(path.join(PUBLIC_DIR, excursionsIndex.path), excursionsIndex.html);
+  writeGeneratedPage(excursionsIndex.path, excursionsIndex.html);
   generated.push(excursionsIndex.path);
 
   rentals.forEach((item) => {
     const page = rentalDetailPage(item, endpoint);
-    writeFile(path.join(PUBLIC_DIR, page.path), page.html);
+    writeGeneratedPage(page.path, page.html);
     generated.push(page.path);
   });
 
   const rentalIndex = rentalIndexPage(rentals);
-  writeFile(path.join(PUBLIC_DIR, rentalIndex.path), rentalIndex.html);
+  writeGeneratedPage(rentalIndex.path, rentalIndex.html);
   generated.push(rentalIndex.path);
 
   services.forEach((item) => {
     const page = serviceDetailPage(item);
-    writeFile(path.join(PUBLIC_DIR, page.path), page.html);
+    writeGeneratedPage(page.path, page.html);
     generated.push(page.path);
   });
 
   const servicesIndex = servicesIndexPage(services);
-  writeFile(path.join(PUBLIC_DIR, servicesIndex.path), servicesIndex.html);
+  writeGeneratedPage(servicesIndex.path, servicesIndex.html);
   generated.push(servicesIndex.path);
 
   const staticPaths = ["/", "/privacy.html", "/refund-policy.html"];
