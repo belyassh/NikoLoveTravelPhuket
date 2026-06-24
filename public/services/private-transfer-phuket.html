@@ -67,7 +67,7 @@
         flex-wrap: wrap;
         gap: 0.6rem;
       }
-      .seo-grid { display: grid; gap: 1.5rem; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); margin-bottom: 1.5rem; align-items: stretch; }
+      .seo-grid { display: grid; gap: 1.5rem; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); margin-bottom: 1.5rem; align-items: stretch; }
       .seo-grid .seo-card { display: flex; flex-direction: column; height: 100%; }
       .seo-card { border: 1px solid var(--line); border-radius: var(--radius-md); padding: 1.2rem; background: var(--surface); margin-bottom: 1.5rem; }
       @media (min-width: 1401px) {
@@ -152,6 +152,44 @@
         }
         .seo-head h1 {
           font-size: clamp(1.8rem, 10vw, 3rem);
+        }
+      }
+      @media (max-width: 560px) {
+        .seo-page {
+          padding: 0.95rem;
+        }
+        .seo-grid,
+        .program-grid {
+          grid-template-columns: 1fr;
+          gap: 1rem;
+        }
+        .itinerary-step {
+          flex-direction: column;
+          gap: 0.35rem;
+        }
+        .itinerary-time {
+          min-width: 0;
+        }
+        .seo-card {
+          padding: 1rem;
+        }
+      }
+      @media (max-width: 430px) {
+        .seo-page {
+          padding: 0.85rem;
+        }
+        .seo-back-top .btn,
+        .seo-request-wrap .btn,
+        .seo-head-actions .btn {
+          width: 100%;
+          justify-content: center;
+        }
+        .program-meta {
+          flex-direction: column;
+          gap: 0.35rem;
+        }
+        .seo-hero-image img {
+          height: clamp(190px, 54vw, 260px);
         }
       }
     </style>
