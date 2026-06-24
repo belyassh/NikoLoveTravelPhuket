@@ -1,18 +1,14 @@
 const state = {
+  catalogItems: [],
   excursions: [],
   filtered: [],
   rentals: [],
-  filteredRentals: [],
   services: [],
-  quickExcursionCategory: "all",
-  quickServiceMode: "all",
-  rentalsLoaded: false,
-  rentalLoadPromise: null,
+  quickCatalogCategory: "all",
   telegramUsername: "",
   currency: "USD",
   emailService: null,
-  isExcursionSubmitting: false,
-  isRentalSubmitting: false
+  isExcursionSubmitting: false
 };
 
 const FALLBACK_IMAGE =
@@ -32,25 +28,11 @@ let horizontalClampQueued = false;
 const refs = {
   cardsGrid: document.querySelector("#cardsGrid"),
   cardTemplate: document.querySelector("#cardTemplate"),
-  rentalSection: document.querySelector("#rental"),
-  rentalRequestSection: document.querySelector("#rental-request"),
-  rentalCardsGrid: document.querySelector("#rentalCardsGrid"),
-  rentalCardTemplate: document.querySelector("#rentalCardTemplate"),
-  servicesCardsGrid: document.querySelector("#servicesCardsGrid"),
-  serviceCardTemplate: document.querySelector("#serviceCardTemplate"),
   searchInput: document.querySelector("#searchInput"),
-  tagFilter: document.querySelector("#tagFilter"),
   quickCategoryTabs: document.querySelector("#quickCategoryTabs"),
-  rentalSearchInput: document.querySelector("#rentalSearchInput"),
-  rentalTagFilter: document.querySelector("#rentalTagFilter"),
-  servicesSearchInput: document.querySelector("#servicesSearchInput"),
-  servicesTagFilter: document.querySelector("#servicesTagFilter"),
   form: document.querySelector("#requestForm"),
   submitButton: document.querySelector('#requestForm button[type="submit"]'),
-  rentalForm: document.querySelector("#rentalRequestForm"),
-  rentalSubmitButton: document.querySelector('#rentalRequestForm button[type="submit"]'),
   formNote: document.querySelector("#formNote"),
-  rentalFormNote: document.querySelector("#rentalFormNote"),
   managerLink: document.querySelector("#managerLink"),
   mainNav: document.querySelector("#mainNav"),
   mobileMenuToggle: document.querySelector("#mobileMenuToggle"),
@@ -72,42 +54,42 @@ const marketingContext = captureMarketingContext();
 bindNavigationEvents();
 
 initialize().catch((error) => {
-  refs.cardsGrid.innerHTML = '<div class="empty-state">Не удалось загрузить данные экскурсий.</div>';
-  refs.rentalCardsGrid.innerHTML = '<div class="empty-state">Не удалось загрузить данные аренды.</div>';
-  refs.servicesCardsGrid.innerHTML = '<div class="empty-state">Не удалось загрузить данные услуг.</div>';
+  refs.cardsGrid.innerHTML = '<div class="empty-state">Не удалось загрузить данные каталога.</div>';
   refs.formNote.textContent = "Ошибка загрузки. Проверьте файлы data/excursions.json и data/rentals.json";
-  if (refs.rentalFormNote) {
-    refs.rentalFormNote.textContent = "Ошибка загрузки. Проверьте файлы data/excursions.json и data/rentals.json";
-  }
   console.error(error);
 });
 
 async function initialize() {
-  const excursionsData = await loadJsonData(EXCURSIONS_DATA_URL, "экскурсий");
+  const [excursionsData, rentalsData, servicesData] = await Promise.all([
+    loadJsonData(EXCURSIONS_DATA_URL, "экскурсий"),
+    loadJsonData(RENTALS_DATA_URL, "аренды"),
+    loadJsonData(SERVICES_DATA_URL, "услуг")
+  ]);
 
   state.excursions = (excursionsData.excursions ?? []).map((item) => ({
     ...item,
     _searchIndex: buildExcursionSearchIndex(item)
   }));
-  state.filtered = [...state.excursions];
+  state.rentals = (rentalsData.rentals ?? []).map((item) => ({
+    ...item,
+    _searchIndex: buildRentalSearchIndex(item)
+  }));
+  state.services = (servicesData.services ?? []).map((item) => ({
+    ...item,
+    _searchIndex: buildServiceSearchIndex(item)
+  }));
+
+  state.catalogItems = buildUnifiedCatalogItems();
+  state.filtered = [...state.catalogItems];
   state.currency = excursionsData.agency?.currency ?? "USD";
   priceFormatter = createPriceFormatter(state.currency);
   state.telegramUsername = normalizeTelegramUsername(excursionsData.telegram?.managerUsername);
   state.emailService = normalizeEmailServiceConfig(excursionsData.emailService);
 
   setupManagerLink();
-  populateExcursionTagFilter();
-  renderCards(getTopExcursions(state.excursions));
-  await loadAndRenderServices();
-  populateServicesTagFilter();
-  setupDeferredRentalState();
+  renderUnifiedCards(getTopCatalogItems(state.catalogItems));
   bindEvents();
   bindQuickCategoryTabs();
-  setupRentalLazyLoading();
-
-  if (window.location.hash === "#rental") {
-    void ensureRentalsLoaded();
-  }
 
   enforceHorizontalViewport();
 }
@@ -160,61 +142,13 @@ function bindNavigationEvents() {
 }
 
 function bindEvents() {
-  if (refs.rentalSearchInput) {
-    refs.rentalSearchInput.addEventListener("input", debounce(async () => {
-      if (await ensureRentalsLoaded()) {
-        applyRentalFilters();
-      }
-    }, INPUT_DEBOUNCE_MS));
-  }
-  if (refs.rentalTagFilter) {
-    refs.rentalTagFilter.addEventListener("change", async () => {
-      if (await ensureRentalsLoaded()) {
-        applyRentalFilters();
-      }
-    });
-  }
   if (refs.searchInput) {
     refs.searchInput.addEventListener("input", debounce(() => {
-      applyExcursionFilters();
+      applyCatalogFilters();
     }, INPUT_DEBOUNCE_MS));
-  }
-  if (refs.tagFilter) {
-    refs.tagFilter.addEventListener("change", () => {
-      applyExcursionFilters();
-    });
-  }
-
-  if (refs.servicesSearchInput) {
-    refs.servicesSearchInput.addEventListener("input", debounce(() => {
-      applyServiceFilters();
-    }, INPUT_DEBOUNCE_MS));
-  }
-  if (refs.servicesTagFilter) {
-    refs.servicesTagFilter.addEventListener("change", () => {
-      state.quickServiceMode = "all";
-      applyServiceFilters();
-    });
   }
   refs.form.addEventListener("submit", onFormSubmit);
-  if (refs.rentalForm) {
-    refs.rentalForm.addEventListener("submit", onRentalFormSubmit);
-  }
   refs.dialogClose.addEventListener("click", closeDialog);
-
-  const loadRentalsOnIntent = () => {
-    void ensureRentalsLoaded();
-  };
-
-  if (refs.rentalSearchInput) {
-    refs.rentalSearchInput.addEventListener("focus", loadRentalsOnIntent, { once: true });
-  }
-  if (refs.rentalTagFilter) {
-    refs.rentalTagFilter.addEventListener("focus", loadRentalsOnIntent, { once: true });
-  }
-  if (refs.rentalForm) {
-    refs.rentalForm.addEventListener("pointerdown", loadRentalsOnIntent, { once: true, passive: true });
-  }
 
   refs.detailsDialog.addEventListener("click", (event) => {
     const { target } = event;
@@ -287,69 +221,21 @@ function setupManagerLink() {
   refs.managerLink.textContent = "Открыть Telegram";
 }
 
-function populateRentalTagFilter() {
-  refs.rentalTagFilter.querySelectorAll('option:not([value="all"])').forEach((option) => option.remove());
-  const categories = [...new Set(state.rentals.map((item) => item.category).filter(Boolean))].sort();
-
-  for (const category of categories) {
-    const option = document.createElement("option");
-    option.value = category;
-    option.textContent = formatRentalCategory(category);
-    refs.rentalTagFilter.append(option);
-  }
-}
-
-function populateExcursionTagFilter() {
-  if (!refs.tagFilter) return;
-  refs.tagFilter.querySelectorAll('option:not([value="all"])').forEach((option) => option.remove());
-  const categories = [...new Set(state.excursions.map((item) => item.category).filter(Boolean))].sort();
-
-  for (const category of categories) {
-    const option = document.createElement("option");
-    option.value = category;
-    option.textContent = category;
-    refs.tagFilter.append(option);
-  }
-}
-
 function applyExcursionFilters() {
-  const query = (refs.searchInput && refs.searchInput.value || "").trim().toLowerCase();
-  const category = refs.tagFilter ? refs.tagFilter.value : state.quickExcursionCategory;
+  applyCatalogFilters();
+}
 
-  state.filtered = state.excursions.filter((item) => {
-    const byCategory = category === "all" || item.category === category;
-    const byQuery = !query || (item._searchIndex || buildExcursionSearchIndex(item)).includes(query);
+function applyCatalogFilters() {
+  const query = (refs.searchInput && refs.searchInput.value || "").trim().toLowerCase();
+  const category = state.quickCatalogCategory;
+
+  state.filtered = state.catalogItems.filter((item) => {
+    const byCategory = category === "all" || item.quickCategory === category;
+    const byQuery = !query || item.searchIndex.includes(query);
     return byCategory && byQuery;
   });
 
-  renderCards(state.filtered);
-}
-
-function populateServicesTagFilter() {
-  if (!refs.servicesTagFilter) return;
-  refs.servicesTagFilter.querySelectorAll('option:not([value="all"])').forEach((option) => option.remove());
-  const categories = [...new Set(state.services.map((item) => item.category).filter(Boolean))].sort();
-
-  for (const category of categories) {
-    const option = document.createElement("option");
-    option.value = category;
-    option.textContent = category;
-    refs.servicesTagFilter.append(option);
-  }
-}
-
-function applyServiceFilters() {
-  const query = (refs.servicesSearchInput && refs.servicesSearchInput.value || "").trim().toLowerCase();
-  const category = (refs.servicesTagFilter && refs.servicesTagFilter.value) || "all";
-
-  const filtered = state.services.filter((item) => {
-    const byQuickMode = state.quickServiceMode !== "other-services" || item.category !== "border-run";
-    const byCategory = category === "all" || item.category === category;
-    const byQuery = !query || (item._searchIndex || buildServiceSearchIndex(item)).includes(query);
-    return byQuickMode && byCategory && byQuery;
-  });
-
-  renderServiceCards(filtered);
+  renderUnifiedCards(state.filtered);
 }
 
 function bindQuickCategoryTabs() {
@@ -359,7 +245,7 @@ function bindQuickCategoryTabs() {
 
   const tabs = Array.from(refs.quickCategoryTabs.querySelectorAll("[data-tab]"));
   tabs.forEach((tab) => {
-    tab.addEventListener("click", async () => {
+    tab.addEventListener("click", () => {
       const tabValue = tab.getAttribute("data-tab") || "all";
       tabs.forEach((item) => {
         const active = item === tab;
@@ -368,49 +254,8 @@ function bindQuickCategoryTabs() {
       });
 
       refs.searchInput.value = "";
-      refs.rentalSearchInput.value = "";
-      refs.servicesSearchInput.value = "";
-      state.quickServiceMode = "all";
-
-      if (tabValue === "all") {
-        state.quickExcursionCategory = "all";
-        refs.servicesTagFilter.value = "all";
-        refs.rentalTagFilter.value = "all";
-        applyExcursionFilters();
-        applyServiceFilters();
-        if (await ensureRentalsLoaded()) {
-          applyRentalFilters();
-        }
-        document.querySelector("#catalog").scrollIntoView({ behavior: "smooth", block: "start" });
-        return;
-      }
-
-      if (tabValue === "rental") {
-        if (await ensureRentalsLoaded()) {
-          refs.rentalTagFilter.value = "all";
-          applyRentalFilters();
-        }
-        document.querySelector("#rental").scrollIntoView({ behavior: "smooth", block: "start" });
-        return;
-      }
-
-      if (tabValue === "border-run") {
-        refs.servicesTagFilter.value = "border-run";
-        applyServiceFilters();
-        document.querySelector("#services").scrollIntoView({ behavior: "smooth", block: "start" });
-        return;
-      }
-
-      if (tabValue === "other-services") {
-        refs.servicesTagFilter.value = "all";
-        state.quickServiceMode = "other-services";
-        applyServiceFilters();
-        document.querySelector("#services").scrollIntoView({ behavior: "smooth", block: "start" });
-        return;
-      }
-
-      state.quickExcursionCategory = tabValue;
-      applyExcursionFilters();
+      state.quickCatalogCategory = tabValue;
+      applyCatalogFilters();
       document.querySelector("#catalog").scrollIntoView({ behavior: "smooth", block: "start" });
     });
   });
@@ -527,6 +372,70 @@ function getTopExcursions(items) {
   return [...items].slice(0, 6);
 }
 
+function getTopCatalogItems(items) {
+  const excursions = items
+    .filter((item) => item.itemType === "excursion")
+    .sort((a, b) => Number(a.topRank || 999) - Number(b.topRank || 999))
+    .slice(0, 6);
+
+  const rentals = items.filter((item) => item.itemType === "rental").slice(0, 3);
+  const services = items.filter((item) => item.itemType === "service").slice(0, 3);
+
+  return [...excursions, ...rentals, ...services];
+}
+
+function buildUnifiedCatalogItems() {
+  const excursionItems = state.excursions.map((item) => ({
+    itemType: "excursion",
+    quickCategory: item.category || "land",
+    title: item.title,
+    overview: item.overview || item.description || "",
+    priceLabel: formatExcursionPriceSummary(item),
+    label: item.category === "sea" ? "Морская экскурсия" : item.category === "show" ? "Шоу" : "Наземная экскурсия",
+    image: getExcursionImages(item)[0],
+    searchIndex: item._searchIndex || buildExcursionSearchIndex(item),
+    topRank: item.topRank,
+    onSelect: () => {
+      trackAnalyticsEvent("begin_checkout", {
+        item_name: item.title,
+        item_category: item.category,
+        item_type: "excursion"
+      });
+      window.location.href = `${buildExcursionPagePath(item)}#request`;
+    }
+  }));
+
+  const rentalItems = state.rentals.map((item) => ({
+    itemType: "rental",
+    quickCategory: "rental",
+    title: item.title,
+    overview: item.overview || item.description || "",
+    priceLabel: `От ${formatPrice(getRentalPrice(item, "day"))} / день`,
+    label: `${formatRentalCategory(item.category)}${item.transmission ? ` • ${item.transmission}` : ""}`,
+    image: getRentalImages(item)[0],
+    searchIndex: item._searchIndex || buildRentalSearchIndex(item),
+    onSelect: () => {
+      window.location.href = `${buildRentalPagePath(item)}#request`;
+    }
+  }));
+
+  const serviceItems = state.services.map((item) => ({
+    itemType: "service",
+    quickCategory: item.category === "border-run" ? "border-run" : "other-services",
+    title: item.title,
+    overview: item.overview || item.description || "",
+    priceLabel: `От ${formatPrice(item.priceFrom || 0)}${item.unit ? ` ${item.unit}` : ""}`,
+    label: formatServiceCategory(item.category),
+    image: getServiceImage(item),
+    searchIndex: item._searchIndex || buildServiceSearchIndex(item),
+    onSelect: () => {
+      window.location.href = `${buildServicePagePath(item)}#request`;
+    }
+  }));
+
+  return [...excursionItems, ...rentalItems, ...serviceItems];
+}
+
 function renderCards(items) {
   if (!items.length) {
     refs.cardsGrid.replaceChildren(createEmptyState("По вашему запросу экскурсии не найдены."));
@@ -567,26 +476,9 @@ function renderCards(items) {
   refs.cardsGrid.replaceChildren(fragment);
 }
 
-function applyRentalFilters() {
-  if (!state.rentalsLoaded) {
-    return;
-  }
-
-  const query = refs.rentalSearchInput.value.trim().toLowerCase();
-  const category = refs.rentalTagFilter.value;
-
-  state.filteredRentals = state.rentals.filter((item) => {
-    const byCategory = category === "all" || item.category === category;
-    const byQuery = !query || item._searchIndex.includes(query);
-    return byCategory && byQuery;
-  });
-
-  renderRentalCards(state.filteredRentals);
-}
-
-function renderRentalCards(items) {
+function renderUnifiedCards(items) {
   if (!items.length) {
-    refs.rentalCardsGrid.replaceChildren(createEmptyState("По вашему запросу варианты аренды не найдены."));
+    refs.cardsGrid.replaceChildren(createEmptyState("По вашему запросу ничего не найдено."));
     return;
   }
 
@@ -594,68 +486,29 @@ function renderRentalCards(items) {
   let index = 0;
 
   for (const item of items) {
-    const node = refs.rentalCardTemplate.content.cloneNode(true);
-    const card = node.querySelector(".rental-card");
+    const node = refs.cardTemplate.content.cloneNode(true);
+    const card = node.querySelector(".tour-card");
     const image = node.querySelector(".tour-card-image");
-    const images = getRentalImages(item);
 
-    image.src = images[0];
+    image.src = item.image || FALLBACK_IMAGE;
     image.alt = item.title;
 
+    node.querySelector(".rental-card-meta").textContent = item.label || "";
     node.querySelector(".tour-card-title").textContent = item.title;
     node.querySelector(".tour-card-overview").textContent = item.overview;
-    node.querySelector(".rental-card-meta").textContent = `${formatRentalCategory(item.category)} • ${item.transmission}`;
-    node.querySelector(".tour-card-price").textContent = `От ${formatPrice(getRentalPrice(item, "day"))} / день`;
+    node.querySelector(".tour-card-price").textContent = item.priceLabel;
 
-    const requestBtn = node.querySelector('[data-action="request"]');
-
-    requestBtn.addEventListener("click", () => {
-      window.location.href = `${buildRentalPagePath(item)}#request`;
-    });
+    const selectBtn = node.querySelector('[data-action="select"]');
+    selectBtn.addEventListener("click", item.onSelect);
 
     card.style.animationDelay = `${Math.min(320, index * 60)}ms`;
     index += 1;
     fragment.append(node);
   }
 
-  refs.rentalCardsGrid.replaceChildren(fragment);
+  refs.cardsGrid.replaceChildren(fragment);
 }
 
-function renderServiceCards(items) {
-  if (!items.length) {
-    refs.servicesCardsGrid.replaceChildren(createEmptyState("Список услуг скоро появится."));
-    return;
-  }
-
-  const fragment = document.createDocumentFragment();
-  let index = 0;
-
-  for (const item of items) {
-    const node = refs.serviceCardTemplate.content.cloneNode(true);
-    const card = node.querySelector(".service-card");
-    const image = node.querySelector(".tour-card-image");
-
-    image.src = getServiceImage(item);
-    image.alt = item.title;
-
-    node.querySelector(".tour-card-title").textContent = item.title;
-    node.querySelector(".tour-card-overview").textContent = item.overview || item.description || "";
-    node.querySelector(".rental-card-meta").textContent = formatServiceCategory(item.category);
-    node.querySelector(".tour-card-price").textContent = `От ${formatPrice(item.priceFrom || 0)}${item.unit ? ` ${item.unit}` : ""}`;
-
-    const requestBtn = node.querySelector('[data-action="request"]');
-
-    requestBtn.addEventListener("click", () => {
-      window.location.href = `${buildServicePagePath(item)}#request`;
-    });
-
-    card.style.animationDelay = `${Math.min(320, index * 60)}ms`;
-    index += 1;
-    fragment.append(node);
-  }
-
-  refs.servicesCardsGrid.replaceChildren(fragment);
-}
 
 function closeDialog() {
   refs.detailsDialog.close();
@@ -758,104 +611,14 @@ async function onFormSubmit(event) {
   }
 }
 
-async function onRentalFormSubmit(event) {
-  event.preventDefault();
-
-  if (!refs.rentalForm.checkValidity()) {
-    refs.rentalForm.reportValidity();
-    return;
-  }
-
-  const formData = new FormData(refs.rentalForm);
-  const requestDetails = {
-    firstName: formData.get("firstName"),
-    lastName: formData.get("lastName"),
-    phone: formData.get("phone"),
-    hotel: formData.get("hotel"),
-    telegramNick: formData.get("telegramNick"),
-    rentalDuration: formData.get("rentalDuration")
-  };
-
-  const message = [
-    "Привет! Я хочу оставить заявку на аренду, вот мои данные:",
-    `Имя и фамилия: ${requestDetails.firstName} ${requestDetails.lastName}`,
-    `Телефон: ${requestDetails.phone}`,
-    `Отель: ${requestDetails.hotel}`,
-    `Telegram: ${requestDetails.telegramNick}`,
-    `Желаемая длительность аренды: ${requestDetails.rentalDuration}`
-  ].join("\n");
-
-  setRentalSubmittingState(true);
-  showStatusDialog({
-    title: "Отправляем запрос...",
-    text: "Пожалуйста, подождите.",
-    mode: "loading"
-  });
-
-  try {
-    if (state.emailService?.endpoint) {
-      const result = await sendRentalRequestViaEmailService(requestDetails, message);
-
-      if (result.ok) {
-        refs.rentalFormNote.textContent = "Заявка на аренду отправлена. Мы свяжемся с вами в ближайшее время.";
-        refs.rentalForm.reset();
-        trackAnalyticsEvent("generate_lead", {
-          lead_type: "rental_request",
-          send_method: "email",
-          form_location: "homepage"
-        });
-        showStatusDialog({
-          title: "Мы приняли вашу заявку",
-          text: "Менеджер свяжется с вами в ближайшее время.",
-          mode: "success"
-        });
-        return;
-      }
-
-      refs.rentalFormNote.textContent = result.error || "Не удалось отправить заявку на email. Открываем Telegram как резервный канал.";
-    }
-
-    const telegramUrl = buildTelegramRequestUrl();
-    window.open(telegramUrl, "_blank", "noopener,noreferrer");
-
-    if (state.telegramUsername) {
-      const copied = await copyToClipboard(message);
-      refs.rentalFormNote.textContent = copied
-        ? `Открыт чат @${state.telegramUsername}. Текст заявки скопирован, вставьте его в диалог.`
-        : `Открыт чат @${state.telegramUsername}. Скопируйте текст заявки вручную и отправьте менеджеру.`;
-    } else {
-      refs.rentalFormNote.textContent = "Открываем Telegram с готовым текстом заявки...";
-    }
-
-    showStatusDialog({
-      title: "Нужна отправка через Telegram",
-      text: "Мы открыли резервный канал. Завершите отправку заявки в Telegram.",
-      mode: "fallback"
-    });
-    trackAnalyticsEvent("generate_lead", {
-      lead_type: "rental_request",
-      send_method: "telegram_fallback",
-      form_location: "homepage"
-    });
-  } finally {
-    setRentalSubmittingState(false);
-  }
-}
-
 function setExcursionSubmittingState(isSubmitting) {
   state.isExcursionSubmitting = isSubmitting;
   refs.submitButton.disabled = isSubmitting;
   refs.submitButton.textContent = isSubmitting ? "Отправляем..." : "Отправить заявку на подбор";
 }
 
-function setRentalSubmittingState(isSubmitting) {
-  state.isRentalSubmitting = isSubmitting;
-  refs.rentalSubmitButton.disabled = isSubmitting;
-  refs.rentalSubmitButton.textContent = isSubmitting ? "Отправляем..." : "Отправить заявку на аренду";
-}
-
 function isAnySubmitting() {
-  return state.isExcursionSubmitting || state.isRentalSubmitting;
+  return state.isExcursionSubmitting;
 }
 
 function showStatusDialog({ title, text, mode }) {
@@ -1280,6 +1043,21 @@ function buildRentalSearchIndex(item) {
     .toLowerCase();
 }
 
+function buildServiceSearchIndex(item) {
+  return [
+    item.title,
+    item.overview,
+    item.description,
+    item.category,
+    item.unit,
+    String(item.priceFrom || ""),
+    ...(Array.isArray(item.tags) ? item.tags : [])
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+}
+
 function createEmptyState(text) {
   const node = document.createElement("div");
   node.className = "empty-state";
@@ -1294,95 +1072,6 @@ function debounce(fn, wait) {
     clearTimeout(timeoutId);
     timeoutId = setTimeout(() => fn(...args), wait);
   };
-}
-
-function setupDeferredRentalState() {
-  refs.rentalCardsGrid.classList.add("is-pending");
-  refs.rentalCardsGrid.replaceChildren(createEmptyState("Загружаем варианты аренды..."));
-  setRentalControlsEnabled(false);
-}
-
-async function loadAndRenderServices() {
-  try {
-    const servicesData = await loadJsonData(SERVICES_DATA_URL, "услуг");
-    state.services = (servicesData.services ?? []).map((item) => ({ ...item, _searchIndex: buildServiceSearchIndex(item) }));
-    renderServiceCards(state.services);
-  } catch (error) {
-    refs.servicesCardsGrid.replaceChildren(createEmptyState("Не удалось загрузить данные услуг."));
-    console.error(error);
-  }
-}
-
-function setRentalControlsEnabled(isEnabled) {
-  refs.rentalSearchInput.disabled = !isEnabled;
-  refs.rentalTagFilter.disabled = !isEnabled;
-}
-
-function setupRentalLazyLoading() {
-  if (!("IntersectionObserver" in window)) {
-    void ensureRentalsLoaded();
-    return;
-  }
-
-  const targets = [refs.rentalSection, refs.rentalRequestSection].filter(Boolean);
-  if (!targets.length) {
-    void ensureRentalsLoaded();
-    return;
-  }
-
-  const observer = new IntersectionObserver((entries) => {
-    if (!entries.some((entry) => entry.isIntersecting)) {
-      return;
-    }
-
-    observer.disconnect();
-    void ensureRentalsLoaded();
-  }, {
-    rootMargin: "300px 0px"
-  });
-
-  targets.forEach((target) => observer.observe(target));
-}
-
-function applyRentalsData(rentalsData) {
-  state.rentals = (rentalsData.rentals ?? []).map((item) => ({
-    ...item,
-    _searchIndex: buildRentalSearchIndex(item)
-  }));
-  state.filteredRentals = [...state.rentals];
-  populateRentalTagFilter();
-  refs.rentalCardsGrid.classList.remove("is-pending");
-  renderRentalCards(state.filteredRentals);
-  setRentalControlsEnabled(true);
-}
-
-async function ensureRentalsLoaded() {
-  if (state.rentalsLoaded) {
-    return true;
-  }
-
-  if (state.rentalLoadPromise) {
-    return state.rentalLoadPromise;
-  }
-
-  state.rentalLoadPromise = (async () => {
-    try {
-      const rentalsData = await loadJsonData(RENTALS_DATA_URL, "аренды");
-      applyRentalsData(rentalsData);
-      state.rentalsLoaded = true;
-      return true;
-    } catch (error) {
-      refs.rentalCardsGrid.classList.remove("is-pending");
-      refs.rentalCardsGrid.replaceChildren(createEmptyState("Не удалось загрузить данные аренды."));
-      refs.rentalFormNote.textContent = "Ошибка загрузки данных аренды.";
-      console.error(error);
-      return false;
-    } finally {
-      state.rentalLoadPromise = null;
-    }
-  })();
-
-  return state.rentalLoadPromise;
 }
 
 async function loadJsonData(url, label) {

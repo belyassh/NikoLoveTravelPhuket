@@ -201,9 +201,7 @@
 
       <nav class="main-nav" id="mainNav" aria-label="Главная навигация">
         <button id="mobileMenuClose" class="mobile-menu-close" type="button" aria-label="Закрыть меню">×</button>
-        <a href="#catalog">Экскурсии</a>
-        <a href="#rental">Аренда</a>
-        <a href="#services">Услуги</a>
+        <a href="#catalog">Каталог</a>
         <a href="#request">Заявка</a>
         <a href="#faq">FAQ</a>
         <a href="#contacts">Контакты</a>
@@ -217,20 +215,20 @@
     <main>
       <section class="hero" id="home">
         <p class="kicker">Туристическое агентство на Пхукете</p>
-        <h1>Экскурсии на Пхукете: море, острова и яркие маршруты каждый день</h1>
+        <h1>Единая витрина на Пхукете: экскурсии, аренда и важные услуги</h1>
         <p class="hero-copy">
-          Подбирайте туры по Пхукету: Пхи-Пхи, Симиланские острова, залив Джеймса Бонда, обзорные и семейные программы. Смотрите детали, считайте стоимость и отправляйте заявку за пару шагов.
+          Подбирайте туры по Пхукету, аренду транспорта и полезные сервисы: Пхи-Пхи, Симиланы, залив Джеймса Бонда, border run, трансферы и fast track. Смотрите детали и отправляйте заявку за пару шагов.
         </p>
         <div class="hero-actions">
-          <a class="btn btn-primary" href="#catalog">Смотреть экскурсии</a>
+          <a class="btn btn-primary" href="#catalog">Смотреть каталог</a>
           <a class="btn btn-ghost" href="#request">Рассчитать стоимость</a>
         </div>
       </section>
 
       <section class="catalog" id="catalog">
         <div class="section-head">
-          <h2>Экскурсии и туры по Пхукету</h2>
-          <p>Выбирайте морские, обзорные и культурные маршруты с удобным онлайн-бронированием.</p>
+          <h2>Единый каталог экскурсий, аренды и услуг</h2>
+          <p>Выбирайте морские, наземные маршруты, аренду и дополнительные услуги в одной витрине.</p>
         </div>
 
         <div class="category-tabs" id="quickCategoryTabs" role="tablist" aria-label="Быстрый поиск по категориям">
@@ -245,58 +243,12 @@
 
         <div class="catalog-controls">
           <label class="field">
-            <span>Поиск по экскурсиям</span>
-            <input id="searchInput" type="search" placeholder="Например: пхи-пхи, снорклинг, обзор" />
+            <span>Поиск по каталогу</span>
+            <input id="searchInput" type="search" placeholder="Например: пхи-пхи, скутер, border run" />
           </label>
         </div>
 
         <div id="cardsGrid" class="cards-grid" aria-live="polite"></div>
-      </section>
-
-      <section class="catalog" id="rental">
-        <div class="section-head">
-          <h2>Интерактивная витрина аренды</h2>
-          <p>Выбирайте технику и транспорт по категории, бюджету и условиям.</p>
-        </div>
-
-        <div class="catalog-controls">
-          <label class="field">
-            <span>Поиск по аренде</span>
-            <input id="rentalSearchInput" type="search" placeholder="Например: скутер, SUV, катамаран" />
-          </label>
-
-          <label class="field">
-            <span>Категория аренды</span>
-            <select id="rentalTagFilter">
-              <option value="all">Все категории</option>
-            </select>
-          </label>
-        </div>
-
-        <div id="rentalCardsGrid" class="cards-grid" aria-live="polite"></div>
-      </section>
-
-      <section class="catalog" id="services">
-        <div class="section-head">
-          <h2>Интерактивная витрина услуг</h2>
-          <p>Fast Track, Border Run, трансферы и другие полезные сервисы для отдыха.</p>
-        </div>
-
-        <div class="catalog-controls">
-          <label class="field">
-            <span>Поиск по услугам</span>
-            <input id="servicesSearchInput" type="search" placeholder="Например: Fast Track, трансфер" />
-          </label>
-
-          <label class="field">
-            <span>Категория</span>
-            <select id="servicesTagFilter">
-              <option value="all">Все категории</option>
-            </select>
-          </label>
-        </div>
-
-        <div id="servicesCardsGrid" class="cards-grid" aria-live="polite"></div>
       </section>
 
       <section class="request" id="request">
@@ -517,6 +469,7 @@
       <article class="tour-card reveal-up">
         <img class="tour-card-image" alt="" loading="lazy" decoding="async" fetchpriority="low" />
         <div class="tour-card-body">
+          <p class="rental-card-meta"></p>
           <h3 class="tour-card-title"></h3>
           <p class="tour-card-overview"></p>
           <div class="tour-card-foot">
