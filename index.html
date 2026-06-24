@@ -205,7 +205,6 @@
         <a href="#rental">Аренда</a>
         <a href="#services">Услуги</a>
         <a href="#request">Заявка</a>
-        <a href="#rental-request">Заявка на аренду</a>
         <a href="#faq">FAQ</a>
         <a href="#contacts">Контакты</a>
       </nav>
@@ -225,7 +224,6 @@
         <div class="hero-actions">
           <a class="btn btn-primary" href="#catalog">Смотреть экскурсии</a>
           <a class="btn btn-ghost" href="#request">Рассчитать стоимость</a>
-          <a class="btn btn-ghost" href="#rental-request">Оставить заявку на аренду</a>
         </div>
       </section>
 
@@ -235,17 +233,20 @@
           <p>Выбирайте морские, обзорные и культурные маршруты с удобным онлайн-бронированием.</p>
         </div>
 
+        <div class="category-tabs" id="quickCategoryTabs" role="tablist" aria-label="Быстрый поиск по категориям">
+          <button class="category-tab is-active" type="button" data-tab="all" aria-selected="true">Все</button>
+          <button class="category-tab" type="button" data-tab="sea" aria-selected="false">Морские</button>
+          <button class="category-tab" type="button" data-tab="land" aria-selected="false">Наземные</button>
+          <button class="category-tab" type="button" data-tab="show" aria-selected="false">Шоу</button>
+          <button class="category-tab" type="button" data-tab="border-run" aria-selected="false">Бордеран и визаран</button>
+          <button class="category-tab" type="button" data-tab="rental" aria-selected="false">Аренда</button>
+          <button class="category-tab" type="button" data-tab="other-services" aria-selected="false">Другие услуги</button>
+        </div>
+
         <div class="catalog-controls">
           <label class="field">
             <span>Поиск по экскурсиям</span>
             <input id="searchInput" type="search" placeholder="Например: пхи-пхи, снорклинг, обзор" />
-          </label>
-
-          <label class="field">
-            <span>Категория</span>
-            <select id="tagFilter">
-              <option value="all">Все категории</option>
-            </select>
           </label>
         </div>
 
@@ -387,61 +388,6 @@
         </form>
       </section>
 
-      <section class="request" id="rental-request">
-        <div class="section-head">
-          <h2>Заявка на аренду</h2>
-          <p>Оставьте контакты и желаемую длительность, менеджер подберет вариант аренды.</p>
-        </div>
-
-        <form id="rentalRequestForm" class="request-form" novalidate>
-          <div class="form-grid">
-            <label class="field">
-              <span>Имя</span>
-              <input name="firstName" type="text" required />
-            </label>
-
-            <label class="field">
-              <span>Фамилия</span>
-              <input name="lastName" type="text" required />
-            </label>
-
-            <label class="field field-wide">
-              <span>Телефон</span>
-              <input name="phone" type="tel" placeholder="+7..." required />
-            </label>
-
-            <label class="field">
-              <span>Отель</span>
-              <input name="hotel" type="text" placeholder="Название отеля" required />
-            </label>
-
-            <label class="field">
-              <span>Ник в Telegram</span>
-              <input name="telegramNick" type="text" placeholder="@nickname" required />
-            </label>
-
-            <label class="field field-wide">
-              <span>Желаемая длительность аренды</span>
-              <input name="rentalDuration" type="text" placeholder="Например: 5 дней" required />
-            </label>
-
-            <input
-              name="_gotcha"
-              type="text"
-              tabindex="-1"
-              autocomplete="off"
-              style="position:absolute;left:-9999px;opacity:0;pointer-events:none;"
-              aria-hidden="true"
-            />
-          </div>
-
-          <div class="form-actions">
-            <button class="btn btn-primary" type="submit">Отправить заявку на аренду</button>
-            <p id="rentalFormNote" class="form-note" aria-live="polite"></p>
-          </div>
-        </form>
-      </section>
-
       <section class="faq" id="faq">
         <div class="section-head">
           <h2>FAQ</h2>
@@ -576,8 +522,7 @@
           <div class="tour-card-foot">
             <p class="tour-card-price"></p>
             <div class="tour-card-actions">
-              <button class="btn btn-small btn-ghost" type="button" data-action="details">Подробнее</button>
-              <button class="btn btn-small btn-primary" type="button" data-action="select">Открыть и забронировать</button>
+              <button class="btn btn-small btn-primary" type="button" data-action="select">Забронировать</button>
             </div>
           </div>
         </div>
@@ -594,8 +539,7 @@
           <div class="tour-card-foot">
             <p class="tour-card-price"></p>
             <div class="tour-card-actions">
-              <button class="btn btn-small btn-ghost" type="button" data-action="details">Подробнее</button>
-              <button class="btn btn-small btn-primary" type="button" data-action="request">Запросить</button>
+              <button class="btn btn-small btn-primary" type="button" data-action="request">Забронировать</button>
             </div>
           </div>
         </div>
@@ -612,8 +556,7 @@
           <div class="tour-card-foot">
             <p class="tour-card-price"></p>
             <div class="tour-card-actions">
-              <button class="btn btn-small btn-ghost" type="button" data-action="details">Подробнее</button>
-              <button class="btn btn-small btn-primary" type="button" data-action="request">Запросить</button>
+              <button class="btn btn-small btn-primary" type="button" data-action="request">Забронировать</button>
             </div>
           </div>
         </div>

@@ -595,7 +595,7 @@ function normalizeServices(raw, currency) {
 
 function cardMarkup(item, urlPath) {
   const imageUrl = getFirstImage(item);
-  const actionLabel = item.type === "excursion" ? "Открыть и забронировать" : "Запросить";
+  const actionLabel = "Забронировать";
 
   return `<article class="tour-card">
     <img class="tour-card-image" src="${escapeHtml(imageUrl)}" alt="${escapeHtml(item.title)}" loading="lazy" decoding="async" />
@@ -605,7 +605,6 @@ function cardMarkup(item, urlPath) {
       <div class="tour-card-foot">
         <p class="tour-card-price">Стоимость: ${escapeHtml(item.priceLabel)}</p>
         <div class="tour-card-actions">
-          <a class="btn btn-small btn-ghost" href="${urlPath}">Подробнее</a>
           <a class="btn btn-small btn-primary" href="${urlPath}#request">${escapeHtml(actionLabel)}</a>
         </div>
       </div>

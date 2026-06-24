@@ -4,6 +4,8 @@ const state = {
   rentals: [],
   filteredRentals: [],
   services: [],
+  quickExcursionCategory: "all",
+  quickServiceMode: "all",
   rentalsLoaded: false,
   rentalLoadPromise: null,
   telegramUsername: "",
@@ -38,6 +40,7 @@ const refs = {
   serviceCardTemplate: document.querySelector("#serviceCardTemplate"),
   searchInput: document.querySelector("#searchInput"),
   tagFilter: document.querySelector("#tagFilter"),
+  quickCategoryTabs: document.querySelector("#quickCategoryTabs"),
   rentalSearchInput: document.querySelector("#rentalSearchInput"),
   rentalTagFilter: document.querySelector("#rentalTagFilter"),
   servicesSearchInput: document.querySelector("#servicesSearchInput"),
@@ -73,7 +76,9 @@ initialize().catch((error) => {
   refs.rentalCardsGrid.innerHTML = '<div class="empty-state">Не удалось загрузить данные аренды.</div>';
   refs.servicesCardsGrid.innerHTML = '<div class="empty-state">Не удалось загрузить данные услуг.</div>';
   refs.formNote.textContent = "Ошибка загрузки. Проверьте файлы data/excursions.json и data/rentals.json";
-  refs.rentalFormNote.textContent = "Ошибка загрузки. Проверьте файлы data/excursions.json и data/rentals.json";
+  if (refs.rentalFormNote) {
+    refs.rentalFormNote.textContent = "Ошибка загрузки. Проверьте файлы data/excursions.json и data/rentals.json";
+  }
   console.error(error);
 });
 
@@ -97,9 +102,10 @@ async function initialize() {
   populateServicesTagFilter();
   setupDeferredRentalState();
   bindEvents();
+  bindQuickCategoryTabs();
   setupRentalLazyLoading();
 
-  if (window.location.hash === "#rental" || window.location.hash === "#rental-request") {
+  if (window.location.hash === "#rental") {
     void ensureRentalsLoaded();
   }
 
@@ -154,16 +160,20 @@ function bindNavigationEvents() {
 }
 
 function bindEvents() {
-  refs.rentalSearchInput.addEventListener("input", debounce(async () => {
-    if (await ensureRentalsLoaded()) {
-      applyRentalFilters();
-    }
-  }, INPUT_DEBOUNCE_MS));
-  refs.rentalTagFilter.addEventListener("change", async () => {
-    if (await ensureRentalsLoaded()) {
-      applyRentalFilters();
-    }
-  });
+  if (refs.rentalSearchInput) {
+    refs.rentalSearchInput.addEventListener("input", debounce(async () => {
+      if (await ensureRentalsLoaded()) {
+        applyRentalFilters();
+      }
+    }, INPUT_DEBOUNCE_MS));
+  }
+  if (refs.rentalTagFilter) {
+    refs.rentalTagFilter.addEventListener("change", async () => {
+      if (await ensureRentalsLoaded()) {
+        applyRentalFilters();
+      }
+    });
+  }
   if (refs.searchInput) {
     refs.searchInput.addEventListener("input", debounce(() => {
       applyExcursionFilters();
@@ -182,20 +192,29 @@ function bindEvents() {
   }
   if (refs.servicesTagFilter) {
     refs.servicesTagFilter.addEventListener("change", () => {
+      state.quickServiceMode = "all";
       applyServiceFilters();
     });
   }
   refs.form.addEventListener("submit", onFormSubmit);
-  refs.rentalForm.addEventListener("submit", onRentalFormSubmit);
+  if (refs.rentalForm) {
+    refs.rentalForm.addEventListener("submit", onRentalFormSubmit);
+  }
   refs.dialogClose.addEventListener("click", closeDialog);
 
   const loadRentalsOnIntent = () => {
     void ensureRentalsLoaded();
   };
 
-  refs.rentalSearchInput.addEventListener("focus", loadRentalsOnIntent, { once: true });
-  refs.rentalTagFilter.addEventListener("focus", loadRentalsOnIntent, { once: true });
-  refs.rentalForm.addEventListener("pointerdown", loadRentalsOnIntent, { once: true, passive: true });
+  if (refs.rentalSearchInput) {
+    refs.rentalSearchInput.addEventListener("focus", loadRentalsOnIntent, { once: true });
+  }
+  if (refs.rentalTagFilter) {
+    refs.rentalTagFilter.addEventListener("focus", loadRentalsOnIntent, { once: true });
+  }
+  if (refs.rentalForm) {
+    refs.rentalForm.addEventListener("pointerdown", loadRentalsOnIntent, { once: true, passive: true });
+  }
 
   refs.detailsDialog.addEventListener("click", (event) => {
     const { target } = event;
@@ -295,7 +314,7 @@ function populateExcursionTagFilter() {
 
 function applyExcursionFilters() {
   const query = (refs.searchInput && refs.searchInput.value || "").trim().toLowerCase();
-  const category = (refs.tagFilter && refs.tagFilter.value) || "all";
+  const category = refs.tagFilter ? refs.tagFilter.value : state.quickExcursionCategory;
 
   state.filtered = state.excursions.filter((item) => {
     const byCategory = category === "all" || item.category === category;
@@ -324,12 +343,77 @@ function applyServiceFilters() {
   const category = (refs.servicesTagFilter && refs.servicesTagFilter.value) || "all";
 
   const filtered = state.services.filter((item) => {
+    const byQuickMode = state.quickServiceMode !== "other-services" || item.category !== "border-run";
     const byCategory = category === "all" || item.category === category;
     const byQuery = !query || (item._searchIndex || buildServiceSearchIndex(item)).includes(query);
-    return byCategory && byQuery;
+    return byQuickMode && byCategory && byQuery;
   });
 
   renderServiceCards(filtered);
+}
+
+function bindQuickCategoryTabs() {
+  if (!refs.quickCategoryTabs) {
+    return;
+  }
+
+  const tabs = Array.from(refs.quickCategoryTabs.querySelectorAll("[data-tab]"));
+  tabs.forEach((tab) => {
+    tab.addEventListener("click", async () => {
+      const tabValue = tab.getAttribute("data-tab") || "all";
+      tabs.forEach((item) => {
+        const active = item === tab;
+        item.classList.toggle("is-active", active);
+        item.setAttribute("aria-selected", active ? "true" : "false");
+      });
+
+      refs.searchInput.value = "";
+      refs.rentalSearchInput.value = "";
+      refs.servicesSearchInput.value = "";
+      state.quickServiceMode = "all";
+
+      if (tabValue === "all") {
+        state.quickExcursionCategory = "all";
+        refs.servicesTagFilter.value = "all";
+        refs.rentalTagFilter.value = "all";
+        applyExcursionFilters();
+        applyServiceFilters();
+        if (await ensureRentalsLoaded()) {
+          applyRentalFilters();
+        }
+        document.querySelector("#catalog").scrollIntoView({ behavior: "smooth", block: "start" });
+        return;
+      }
+
+      if (tabValue === "rental") {
+        if (await ensureRentalsLoaded()) {
+          refs.rentalTagFilter.value = "all";
+          applyRentalFilters();
+        }
+        document.querySelector("#rental").scrollIntoView({ behavior: "smooth", block: "start" });
+        return;
+      }
+
+      if (tabValue === "border-run") {
+        refs.servicesTagFilter.value = "border-run";
+        applyServiceFilters();
+        document.querySelector("#services").scrollIntoView({ behavior: "smooth", block: "start" });
+        return;
+      }
+
+      if (tabValue === "other-services") {
+        refs.servicesTagFilter.value = "all";
+        state.quickServiceMode = "other-services";
+        applyServiceFilters();
+        document.querySelector("#services").scrollIntoView({ behavior: "smooth", block: "start" });
+        return;
+      }
+
+      state.quickExcursionCategory = tabValue;
+      applyExcursionFilters();
+      document.querySelector("#catalog").scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  });
 }
 
 function openDetailsModal(item, type) {
@@ -465,16 +549,7 @@ function renderCards(items) {
     node.querySelector(".tour-card-overview").textContent = item.overview;
     node.querySelector(".tour-card-price").textContent = formatExcursionPriceSummary(item);
 
-    const detailsBtn = node.querySelector('[data-action="details"]');
     const selectBtn = node.querySelector('[data-action="select"]');
-    detailsBtn.addEventListener("click", () => {
-      trackAnalyticsEvent("view_item", {
-        item_name: item.title,
-        item_category: item.category,
-        item_type: "excursion"
-      });
-      openDetailsModal(item, "excursion");
-    });
     selectBtn.addEventListener("click", () => {
       trackAnalyticsEvent("begin_checkout", {
         item_name: item.title,
@@ -532,12 +607,8 @@ function renderRentalCards(items) {
     node.querySelector(".rental-card-meta").textContent = `${formatRentalCategory(item.category)} • ${item.transmission}`;
     node.querySelector(".tour-card-price").textContent = `От ${formatPrice(getRentalPrice(item, "day"))} / день`;
 
-    const detailsBtn = node.querySelector('[data-action="details"]');
     const requestBtn = node.querySelector('[data-action="request"]');
 
-    detailsBtn.addEventListener("click", () => {
-      openDetailsModal(item, "rental");
-    });
     requestBtn.addEventListener("click", () => {
       window.location.href = `${buildRentalPagePath(item)}#request`;
     });
@@ -572,12 +643,8 @@ function renderServiceCards(items) {
     node.querySelector(".rental-card-meta").textContent = formatServiceCategory(item.category);
     node.querySelector(".tour-card-price").textContent = `От ${formatPrice(item.priceFrom || 0)}${item.unit ? ` ${item.unit}` : ""}`;
 
-    const detailsBtn = node.querySelector('[data-action="details"]');
     const requestBtn = node.querySelector('[data-action="request"]');
 
-    detailsBtn.addEventListener("click", () => {
-      openDetailsModal(item, "service");
-    });
     requestBtn.addEventListener("click", () => {
       window.location.href = `${buildServicePagePath(item)}#request`;
     });
